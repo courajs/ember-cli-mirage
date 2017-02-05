@@ -1,4 +1,5 @@
 import BaseRouteHandler from './base';
+import AaronSerializer from '../serializers/aaron';
 
 export default class FunctionRouteHandler extends BaseRouteHandler {
 
@@ -18,16 +19,9 @@ export default class FunctionRouteHandler extends BaseRouteHandler {
     this.request = request;
   }
 
-  serialize(response, serializerType) {
-    let serializer;
-
-    if (serializerType) {
-      serializer = this.serializerOrRegistry.serializerFor(serializerType, { explicit: true });
-    } else {
-      serializer = this.serializerOrRegistry;
-    }
-
-    return serializer.serialize(response, this.request);
+  serialize(response, relationshipStore) {
+    let serializer = AaronSerializer.create({store: relationshipStore});
+    return serializer.serializeResponse(response);
   }
 
   normalizedRequestAttrs() {
