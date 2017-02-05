@@ -1,0 +1,10 @@
+<p>{{model.description}}</p>
+<div>
+  Patient ({{model.patient.id}}): {{model.patient.name}}
+</div>
+Facts:
+<ul>
+  {{#each model.facts as |fact|}}
+    <li>{{fact.type}} fact ({{fact.id}}) has parents: {{fact.parentIds}}</li>
+  {{/each}}
+</ul>

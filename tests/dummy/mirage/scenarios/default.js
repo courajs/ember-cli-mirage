@@ -1,17 +1,22 @@
+import theStore from '../the-relationship-store';
+
 export default function(server) {
-  let joe = server.create('contact', { name: 'Joe' });
-  server.create('address', { name: '123 Hyrule Way', contact_id: joe.id });
 
-  let bob = server.create('contact', { name: 'Bob' });
-  server.create('address', { name: 'Mount Doom', contact_id: bob.id });
-  server.create('contact', { name: 'Susan' });
+  /*
+    Seed your development database using your factories.
+    This data will not be loaded in your tests.
 
-  server.create('friend', { name: 'Joe', age: 10, isYoung: true });
-  server.create('friend', { name: 'Bob', age: 80, isYoung: false });
+    Make sure to define a factory for each model you want to create.
+  */
 
-  server.create('pet', { name: 'Pinky', alive: true });
-  server.create('pet', { name: 'Bobby', alive: true });
-  server.create('pet', { name: 'Brownie', alive: true });
+  theStore.defineOne('document', 'patient', 'patient');
+  theStore.defineMany('document', 'facts', 'fact');
+  theStore.defineOne('fact', 'document', 'document');
+  theStore.defineMany('fact', 'parent', 'fact');
 
-  server.create('pet', { name: 'Cactus', alive: false });
+  let p = server.create('patient');
+  let d = server.create('document', 'withDisease');
+
+  theStore.defineOne('document', 'patient', 'patient');
+  theStore.setOne(d, 'patient', p);
 }
