@@ -1,5 +1,4 @@
 import { Factory, faker, trait } from 'ember-cli-mirage';
-import theStore from '../the-relationship-store';
 
 export default Factory.extend({
   description: faker.lorem.paragraph,
@@ -7,11 +6,11 @@ export default Factory.extend({
     afterCreate(doc, server) {
       let d1 = server.create('fact', 'diseaseWithTumors');
       let d2 = server.create('fact', 'diseaseWithTumors');
-      theStore.pushMany(doc, 'facts', [d1, d2]);
-      let tumorIds = theStore.getRelated(d1, 'parent').map((t) => t.id);
-      tumorIds.push(...theStore.getRelated(d2, 'parent').map((t) => t.id));
+      server.relationships.pushMany(doc, 'facts', [d1, d2]);
+      let tumorIds = server.relationships.getRelated(d1, 'parent').map((t) => t.id);
+      tumorIds.push(...server.relationships.getRelated(d2, 'parent').map((t) => t.id));
       let tumors = server.schema.facts.find(tumorIds);
-      theStore.pushMany(doc, 'facts', tumors);
+      server.relationships.pushMany(doc, 'facts', tumors);
     }
   })
 });

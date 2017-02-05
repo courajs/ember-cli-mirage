@@ -8,8 +8,9 @@ import Pretender from 'pretender';
 import Db from './db';
 import Schema from './orm/schema';
 import assert from './assert';
-import SerializerRegistry from './serializer-registry';
 import RouteHandler from './route-handler';
+import RelationshipStore from './relationship-store';
+import AaronSerializer from './serializers/aaron';
 
 import _pick from 'lodash/pick';
 import _assign from 'lodash/assign';
@@ -153,16 +154,17 @@ export default class Server {
     this.namespace = this.namespace || config.namespace || '';
     this.urlPrefix = this.urlPrefix || config.urlPrefix || '';
 
-    this._defineRouteHandlerHelpers();
 
     this.db = this.db || new Db();
+    this.relationships = this.relationships || RelationshipStore.create();
+    this.serializer = this.serializer || AaronSerializer.create({store: this.relationships});
     if (this.schema) {
       this.schema.registerModels(config.models);
-      this.serializerOrRegistry.registerSerializers(config.serializers || {});
     } else {
       this.schema = new Schema(this.db, config.models);
-      this.serializerOrRegistry = new SerializerRegistry(this.schema, config.serializers);
     }
+
+    this._defineRouteHandlerHelpers();
 
     let hasFactories = this._hasModulesOfType(config, 'factories');
     let hasDefaultScenario = config.scenarios && config.scenarios.hasOwnProperty('default');
@@ -471,7 +473,7 @@ export default class Server {
     let routeHandler = new RouteHandler({
       schema: this.schema,
       verb, rawHandler, customizedCode, options, path,
-      serializerOrRegistry: this.serializerOrRegistry
+      serializer: this.serializer
     });
 
     let fullPath = this._getFullPath(path);

@@ -8,6 +8,7 @@ import PostShorthandHandler from './route-handlers/shorthands/post';
 import PutShorthandHandler from './route-handlers/shorthands/put';
 import DeleteShorthandHandler from './route-handlers/shorthands/delete';
 import HeadShorthandHandler from './route-handlers/shorthands/head';
+import { Model, Collection } from 'ember-cli-mirage';
 
 const { RSVP: { Promise }, isBlank, typeOf } = Ember;
 
@@ -19,9 +20,9 @@ function isNotBlankResponse(response) {
 
 const DEFAULT_CODES = { get: 200, put: 204, post: 201, 'delete': 204 };
 
-function createHandler({ verb, schema, serializerOrRegistry, path, rawHandler, options }) {
+function createHandler({ verb, schema, serializer, path, rawHandler, options }) {
   let handler;
-  let args = [schema, serializerOrRegistry, rawHandler, path, options];
+  let args = [schema, serializer, rawHandler, path, options];
   let type = typeOf(rawHandler);
 
   if (type === 'function') {
@@ -44,24 +45,21 @@ function createHandler({ verb, schema, serializerOrRegistry, path, rawHandler, o
 
 export default class RouteHandler {
 
-  constructor({ schema, verb, rawHandler, customizedCode, options, path, serializerOrRegistry }) {
+  constructor({ schema, verb, rawHandler, customizedCode, options, path, serializer }) {
     this.verb = verb;
     this.customizedCode = customizedCode;
-    this.serializerOrRegistry = serializerOrRegistry;
-    this.handler = createHandler({ verb, schema, path, serializerOrRegistry, rawHandler, options });
+    this.serializer = serializer;
+    this.handler = createHandler({ verb, schema, path, serializer, rawHandler, options });
   }
 
   handle(request) {
-    return new Promise(resolve => {
-      this._getMirageResponseForRequest(request).then(mirageResponse => {
-        this.serialize(mirageResponse, request).then(serializedMirageResponse => {
-          resolve(serializedMirageResponse.toRackResponse());
-        });
-      });
-    });
+    let handlerResult = this._getHandlerResult(request);
+    let serialized = this.serialize(handlerResult);
+    let response = this._toMirageResponse(serialized).toRackResponse();
+    return Promise.resolve(response);
   }
 
-  _getMirageResponseForRequest(request) {
+  _getHandlerResult(request) {
     let result;
     try {
       /*
@@ -72,7 +70,7 @@ export default class RouteHandler {
         this.handler.setRequest(request);
       }
 
-      result = this.handler.handle(request);
+      return this.handler.handle(request);
     } catch(e) {
       if (e instanceof MirageError) {
         throw e;
@@ -81,25 +79,11 @@ export default class RouteHandler {
         throw new MirageError(`Your handler for the url ${request.url} threw an error: ${message}`);
       }
     }
-
-    return this._toMirageResponse(result);
   }
 
   _toMirageResponse(result) {
-    let mirageResponse;
-
-    return new Promise(resolve => {
-      Promise.resolve(result).then(response => {
-        if (response instanceof Response) {
-          mirageResponse = result;
-        } else {
-          let code = this._getCodeForResponse(response);
-          mirageResponse = new Response(code, {}, response);
-        }
-        resolve(mirageResponse);
-      });
-
-    });
+    let code = this._getCodeForResponse(result);
+    return new Response(code, {}, result);
   }
 
   _getCodeForResponse(response) {
@@ -115,12 +99,23 @@ export default class RouteHandler {
     return code;
   }
 
-  serialize(mirageResponsePromise, request) {
-    return new Promise(resolve => {
-      Promise.resolve(mirageResponsePromise).then(mirageResponse => {
-        mirageResponse.data = this.serializerOrRegistry.serialize(mirageResponse.data, request);
-        resolve(mirageResponse);
-      });
-    });
+  serialize(handlerResult) {
+    if (this._isModelOrCollection(handlerResult)) {
+      return this.serializer.serializeResponse(handlerResult);
+    } else {
+      return handlerResult;
+    }
+  }
+
+  _isModel(object) {
+    return object instanceof Model;
+  }
+
+  _isCollection(object) {
+    return object instanceof Collection;
+  }
+
+  _isModelOrCollection(object) {
+    return this._isModel(object) || this._isCollection(object);
   }
 }

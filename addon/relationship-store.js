@@ -1,7 +1,7 @@
 import Ember from 'ember';
-import { pluralize, capitalize } from 'ember-cli-mirage/utils/inflector';
+import { pluralize, capitalize } from './utils/inflector';
 import { Collection } from 'ember-cli-mirage';
-import setObjectPath from './set-object-path';
+import setObjectPath from './utils/set-object-path';
 
 export default Ember.Object.extend({
   init() {
