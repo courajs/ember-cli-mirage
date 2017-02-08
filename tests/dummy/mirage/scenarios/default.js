@@ -15,6 +15,5 @@ export default function(server) {
   let p = server.create('patient');
   let d = server.create('document', 'withDisease');
 
-  server.relationships.defineOne('document', 'patient', 'patient');
   server.relationships.setOne(d, 'patient', p);
 }
