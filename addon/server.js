@@ -161,7 +161,7 @@ export default class Server {
     if (this.schema) {
       this.schema.registerModels(config.models);
     } else {
-      this.schema = new Schema(this.db, config.models);
+      this.schema = new Schema(this.db, config.models, this.relationships);
     }
 
     this._defineRouteHandlerHelpers();

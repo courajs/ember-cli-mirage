@@ -1,6 +1,8 @@
 import { pluralize, camelize, dasherize } from '../utils/inflector';
 import { toCollectionName, toModelName } from 'ember-cli-mirage/utils/normalize-name';
 import Association from './associations/association';
+import HasMany from './associations/has-many';
+import BelongsTo from './associations/belongs-to';
 import Collection from './collection';
 import _forIn from 'lodash/forIn';
 import _includes from 'lodash/includes';
@@ -13,10 +15,11 @@ import assert from '../assert';
  */
 export default class Schema {
 
-  constructor(db, modelsMap = {}) {
+  constructor(db, modelsMap = {}, relationshipStore) {
     assert(db, 'A schema requires a db');
 
     this.db = db;
+    this.relationships = relationshipStore;
     this._registry = {};
     this.registerModels(modelsMap);
   }
@@ -59,27 +62,21 @@ export default class Schema {
     for (let associationProperty in ModelClass.prototype) {
       if (ModelClass.prototype[associationProperty] instanceof Association) {
         let association = ModelClass.prototype[associationProperty];
-        association.key = associationProperty;
-        association.modelName = association.modelName || toModelName(associationProperty);
-        association.ownerModelName = modelName;
 
-        // Update the registry with this association's foreign keys. This is
-        // essentially our "db migration", since we must know about the fks.
-        let [fkHolder, fk] = association.getForeignKeyArray();
+        let from  = modelName;
+        let key = associationProperty;
+        let to = association.modelName || toModelName(associationProperty);
 
-        fksAddedFromThisModel[fkHolder] = fksAddedFromThisModel[fkHolder] || [];
-        assert(
-          !_includes(fksAddedFromThisModel[fkHolder], fk),
-          `Your '${type}' model definition has multiple possible inverse relationships of type '${fkHolder}'.
-
-          Please read the associations guide and specify explicit inverses: http://www.ember-cli-mirage.com/docs/v0.2.x/models/#associations`
-        );
-        fksAddedFromThisModel[fkHolder].push(fk);
-
-        this._addForeignKeyToRegistry(fkHolder, fk);
+        if (association instanceof HasMany) {
+          this.relationships.defineMany(from, key, to);
+        } else if (association instanceof BelongsTo) {
+          this.relationships.defineOne(from, key, to);
+        } else {
+          throw new Error('You created your own kind of association...?');
+        }
 
         // Augment the Model's class with any methods added by this association
-        association.addMethodsToModelClass(ModelClass, associationProperty, this);
+        // association.addMethodsToModelClass(ModelClass, associationProperty, this);
       }
     }
 
