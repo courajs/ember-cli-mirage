@@ -60,7 +60,6 @@ export default class RouteHandler {
   }
 
   _getHandlerResult(request) {
-    let result;
     try {
       /*
        We need to do this for the #serialize convenience method. Probably is

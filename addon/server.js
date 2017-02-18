@@ -154,7 +154,6 @@ export default class Server {
     this.namespace = this.namespace || config.namespace || '';
     this.urlPrefix = this.urlPrefix || config.urlPrefix || '';
 
-
     this.db = this.db || new Db();
     this.relationships = this.relationships || RelationshipStore.create();
     this.serializer = this.serializer || AaronSerializer.create({store: this.relationships});

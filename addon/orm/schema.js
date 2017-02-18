@@ -58,7 +58,6 @@ export default class Schema {
     ModelClass.prototype.associationKeys = [];       // ex: address.user, user.addresses
     ModelClass.prototype.associationIdKeys = [];     // ex: address.user_id, user.address_ids. may or may not be a fk.
 
-    let fksAddedFromThisModel = {};
     for (let associationProperty in ModelClass.prototype) {
       if (ModelClass.prototype[associationProperty] instanceof Association) {
         let association = ModelClass.prototype[associationProperty];

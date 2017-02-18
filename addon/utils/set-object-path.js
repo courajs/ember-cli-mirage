@@ -5,7 +5,7 @@ export default function(obj, ...path) {
   let partsSoFar = [];
 
   let nextProp;
-  while(path.length > 1) {
+  while (path.length > 1) {
     nextProp = path.shift();
     partsSoFar.push(nextProp);
 
