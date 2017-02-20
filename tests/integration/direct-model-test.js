@@ -68,20 +68,3 @@ test("Attribute changes are reflected in the database", function(assert) {
 
   assert.deepEqual(this.db.people.find('1'), { id: '1', name: 'A-ron'});
 });
-
-test("A new model can be created from attributes", function(assert) {
-  let aaron = new DirectModel({
-    schema: this.schema,
-    type: 'person',
-    attrs: {
-      name: 'Aaron'
-    }
-  });
-
-  assert.equal(aaron.id, '1');
-  assert.equal(aaron.name, 'Aaron');
-  assert.deepEqual(
-      this.db.people.find('1'),
-      { id: '1', name: 'Aaron' }
-  );
-});

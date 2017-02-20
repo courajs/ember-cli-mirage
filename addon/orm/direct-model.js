@@ -4,6 +4,14 @@ import {
   toCollectionName
 } from 'ember-cli-mirage/utils';
 
+//
+// DirectModel
+//
+// A DirectModel is a view on a model in the database. Changes made to
+// its attributes are immediately synced to the db. It can only be created for
+// an existing record. The DirectInterface is one way to create records
+//
+
 export default class DirectModel {
   constructor({ schema, type, attrs, id }) {
     assert(schema, 'Pass a schema to DirectModel');
@@ -50,6 +58,16 @@ export default class DirectModel {
   }
 
   _setupRelationships() {
+    // depends on schema returning DirectModels
     // let rels = this._schema.relationships.relationshipsForType(this.modelName);
+    // rels.forEach(({name}) => {
+    //   Object.defineProperty(this, name, {
+    //     get() {
+    //       let {type, id} = this._schema.relationships.getRelated(this, name);
+    //       debugger;
+    //       let attrs = this._schema[toCollectionName(type)].find(id);
+    //     }
+    //   });
+    // });
   }
 }
