@@ -1,5 +1,6 @@
 import {
   assert,
+  present,
   toCollectionName
 } from 'ember-cli-mirage/utils';
 
@@ -19,7 +20,12 @@ export default class DirectModel {
       this._id = id;
     }
 
-    this._proxyAttrs();
+    this._setupAttrs();
+    this._setupRelationships();
+  }
+
+  get attrs() {
+    return this._collection.find(this._id);
   }
 
   get _collection() {
@@ -27,11 +33,7 @@ export default class DirectModel {
     return this._schema.db[name];
   }
 
-  get attrs() {
-    return this._collection.find(this._id);
-  }
-
-  _proxyAttrs() {
+  _setupAttrs() {
     for (let attr in this.attrs) {
       Object.defineProperty(this, attr, {
         get() {
@@ -46,8 +48,8 @@ export default class DirectModel {
       });
     }
   }
-}
 
-function present(x) {
-  return x != null;
+  _setupRelationships() {
+    let rels = this._schema.relationships.relationshipsForType(this.modelName);
+  }
 }

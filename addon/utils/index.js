@@ -4,8 +4,13 @@ import {
   toModelName
 } from './normalize-name';
 
+function present(x) {
+  return x != null;
+}
+
 export {
   assert,
+  present,
   toCollectionName,
   toModelName
 };
