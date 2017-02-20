@@ -2,7 +2,7 @@ import { module, test } from 'qunit';
 import Db from 'ember-cli-mirage/db';
 import Model from 'ember-cli-mirage/orm/model';
 import { belongsTo, hasMany } from 'ember-cli-mirage';
-import RelationshipStore from 'ember-cli-mirage/relationship-store';
+import RelationshipStore from 'ember-cli-mirage/orm/relationship-store';
 
 import registerModels from 'ember-cli-mirage/orm/register-models';
 

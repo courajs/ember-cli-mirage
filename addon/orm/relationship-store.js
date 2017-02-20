@@ -1,6 +1,6 @@
-import { pluralize, capitalize } from './utils/inflector';
+import { pluralize, capitalize } from '../utils/inflector';
 import { Collection } from 'ember-cli-mirage';
-import setObjectPath from './utils/set-object-path';
+import setObjectPath from '../utils/set-object-path';
 
 export default class RelationshipStore {
   constructor() {

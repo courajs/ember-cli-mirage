@@ -1,8 +1,5 @@
 import { pluralize, camelize, dasherize } from '../utils/inflector';
-import { toCollectionName, toModelName } from 'ember-cli-mirage/utils/normalize-name';
-import Association from './associations/association';
-import HasMany from './associations/has-many';
-import BelongsTo from './associations/belongs-to';
+import { toCollectionName } from 'ember-cli-mirage/utils/normalize-name';
 import Collection from './collection';
 import _forIn from 'lodash/forIn';
 import _includes from 'lodash/includes';
@@ -15,13 +12,13 @@ import assert from '../assert';
  */
 export default class Schema {
 
-  constructor(db, modelsMap = {}, relationshipStore) {
+  constructor({db, store, models}) {
     assert(db, 'A schema requires a db');
 
     this.db = db;
-    this.relationships = relationshipStore;
+    this.relationships = store;
     this._registry = {};
-    this.registerModels(modelsMap);
+    this.registerModels(models);
   }
 
   /**
@@ -43,47 +40,13 @@ export default class Schema {
    */
   registerModel(type, ModelClass) {
     let camelizedModelName = camelize(type);
-    let modelName = dasherize(camelizedModelName);
+    let collection = toCollectionName(type);
 
     // Avoid mutating original class, because we may want to reuse it across many tests
     ModelClass = ModelClass.extend();
 
     // Store model & fks in registry
-    this._registry[camelizedModelName] = this._registry[camelizedModelName] || { class: null, foreignKeys: [] }; // we may have created this key before, if another model added fks to it
-    this._registry[camelizedModelName].class = ModelClass;
-
-    // Set up associations
-    ModelClass.prototype.hasManyAssociations = {};   // a registry of the model's hasMany associations. Key is key from model definition, value is association instance itself
-    ModelClass.prototype.belongsToAssociations = {}; // a registry of the model's belongsTo associations. Key is key from model definition, value is association instance itself
-    ModelClass.prototype.associationKeys = [];       // ex: address.user, user.addresses
-    ModelClass.prototype.associationIdKeys = [];     // ex: address.user_id, user.address_ids. may or may not be a fk.
-
-    for (let associationProperty in ModelClass.prototype) {
-      if (ModelClass.prototype[associationProperty] instanceof Association) {
-        let association = ModelClass.prototype[associationProperty];
-
-        let from  = modelName;
-        let key = associationProperty;
-        let to = association.modelName || toModelName(associationProperty);
-
-        if (association instanceof HasMany) {
-          this.relationships.defineMany(from, key, to);
-        } else if (association instanceof BelongsTo) {
-          this.relationships.defineOne(from, key, to);
-        } else {
-          throw new Error('You created your own kind of association...?');
-        }
-
-        // Augment the Model's class with any methods added by this association
-        // association.addMethodsToModelClass(ModelClass, associationProperty, this);
-      }
-    }
-
-    // Create a db collection for this model, if doesn't exist
-    let collection = toCollectionName(modelName);
-    if (!this.db[collection]) {
-      this.db.createCollection(collection);
-    }
+    this._registry[camelizedModelName] = { class: ModelClass };
 
     // Create the entity methods
     this[collection] = {
