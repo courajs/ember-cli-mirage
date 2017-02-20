@@ -50,6 +50,6 @@ export default class DirectModel {
   }
 
   _setupRelationships() {
-    let rels = this._schema.relationships.relationshipsForType(this.modelName);
+    // let rels = this._schema.relationships.relationshipsForType(this.modelName);
   }
 }

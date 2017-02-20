@@ -36,22 +36,22 @@ test('relationships must be defined before they can be get or set', function(ass
 test("relationshipsForType() returns a list of relationship definitions", function(assert) {
   this.store.defineOne('thing', 'author', 'other');
   this.store.defineMany('thing', 'comments', 'other');
-  
+
   let result = this.store.relationshipsForType('thing');
 
   assert.deepEqual(result, [
-      {
-        from: 'thing',
-        to: 'other',
-        count: 'one',
-        name: 'author'
-      },
-      {
-        from: 'thing',
-        to: 'other',
-        count: 'many',
-        name: 'comments'
-      }
+    {
+      from: 'thing',
+      to: 'other',
+      count: 'one',
+      name: 'author'
+    },
+    {
+      from: 'thing',
+      to: 'other',
+      count: 'many',
+      name: 'comments'
+    }
   ]);
 });
 

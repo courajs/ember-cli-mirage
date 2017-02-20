@@ -21,7 +21,8 @@ module.exports = {
     'no-var': 0,
     'object-shorthand': 0,
     'arrow-parens': 0,
-    'no-unused-vars': ['error', { 'args': 'none' }]
+    'no-unused-vars': ['error', { 'args': 'none' }],
+    'no-multiple-empty-lines': ['error', { max: 2 }]
   },
   globals: {
     faker: true,

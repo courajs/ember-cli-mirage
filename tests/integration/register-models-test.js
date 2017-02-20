@@ -71,7 +71,7 @@ test("It registers relationships specified in model definitions", function(asser
     to: 'post',
     count: 'one',
     name: 'post'
-  }
+  };
 
   assert.deepEqual(postRels, [expectedPostRel], "It registers hasMany relationships");
   assert.deepEqual(commentRels, [expectedCommentRel], "It registers belongsTo relationships");

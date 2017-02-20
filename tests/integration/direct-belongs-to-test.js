@@ -52,6 +52,6 @@ module("Integration | DirectModel | BelongsTo relationships", {
 //     attrs: { title: 'Introducing Hazy Oasis' }
 //   });
 //   this.store.setOne(post, 'author', aaron);
-// 
+//
 //   assert.equal(post.author.attrs, {id: '1', name: 'Aaron'});
 // });
