@@ -8,24 +8,36 @@ export default class RelationshipStore {
     this._rels = {};
   }
 
+  //
+  // Relationship definition
+  //
+
   defineOne(fromType, relationshipName, toType) {
     setObjectPath(this._definedRels, fromType, relationshipName, {
-      relatedType: toType,
-      count: 'one'
+      from: fromType,
+      to: toType,
+      count: 'one',
+      name: relationshipName
     });
   }
 
   defineMany(fromType, relationshipName, toType) {
     setObjectPath(this._definedRels, fromType, relationshipName, {
-      relatedType: toType,
-      count: 'many'
+      from: fromType,
+      to: toType,
+      count: 'many',
+      name: relationshipName
     });
   }
 
   relationshipsForType(type) {
     let relHash = this._definedRels[type] || {};
-    return Object.keys(relHash);
+    return Object.values(relHash);
   }
+
+  //
+  // Relationship use
+  //
 
   getRelated(model, relationshipName) {
     this.checkHasRelationship(model, relationshipName);
@@ -80,10 +92,10 @@ export default class RelationshipStore {
       throw new Error(message);
     }
 
-    if (rel.relatedType !== to.modelName) {
+    if (rel.to !== to.modelName) {
       let fromType = capitalize(from.modelName);
       let toType = capitalize(to.modelName);
-      let properType = capitalize(rel.relatedType);
+      let properType = capitalize(rel.to);
 
       let toArticle = articleFor(toType);
       let properArticle = articleFor(properType);
@@ -105,9 +117,9 @@ export default class RelationshipStore {
     }
 
     for (let target of to) {
-      if (target.modelName !== rel.relatedType) {
+      if (target.modelName !== rel.to) {
         let fromType = capitalize(from.modelName);
-        let properTypes = capitalize(pluralize(rel.relatedType));
+        let properTypes = capitalize(pluralize(rel.to));
         let toType = capitalize(target.modelName);
         let toId = JSON.stringify(target.id);
 

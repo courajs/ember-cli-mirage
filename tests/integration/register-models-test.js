@@ -6,7 +6,7 @@ import RelationshipStore from 'ember-cli-mirage/orm/relationship-store';
 
 import registerModels from 'ember-cli-mirage/orm/register-models';
 
-module("Integration | Model Registry", {
+module("Integration | Model Registration", {
   beforeEach() {
     this.db = new Db();
     this.store = new RelationshipStore();
@@ -60,6 +60,19 @@ test("It registers relationships specified in model definitions", function(asser
   let postRels = this.store.relationshipsForType('post');
   let commentRels = this.store.relationshipsForType('comment');
 
-  assert.deepEqual(postRels, ['comments'], "It registers hasMany relationships");
-  assert.deepEqual(commentRels, ['post'], "It registers belongsTo relationships");
+  let expectedPostRel = {
+    from: 'post',
+    to: 'comment',
+    count: 'many',
+    name: 'comments'
+  };
+  let expectedCommentRel = {
+    from: 'comment',
+    to: 'post',
+    count: 'one',
+    name: 'post'
+  }
+
+  assert.deepEqual(postRels, [expectedPostRel], "It registers hasMany relationships");
+  assert.deepEqual(commentRels, [expectedCommentRel], "It registers belongsTo relationships");
 });
