@@ -36,6 +36,11 @@ export default class DirectModel {
     return this._collection.find(this._id);
   }
 
+
+  //
+  // Private methods
+  //
+
   get _collection() {
     let name = toCollectionName(this.modelName);
     return this._schema.db[name];
@@ -58,16 +63,30 @@ export default class DirectModel {
   }
 
   _setupRelationships() {
-    // depends on schema returning DirectModels
-    // let rels = this._schema.relationships.relationshipsForType(this.modelName);
-    // rels.forEach(({name}) => {
-    //   Object.defineProperty(this, name, {
-    //     get() {
-    //       let {type, id} = this._schema.relationships.getRelated(this, name);
-    //       debugger;
-    //       let attrs = this._schema[toCollectionName(type)].find(id);
-    //     }
-    //   });
-    // });
+    let rels = this._schema.relationships.relationshipsForType(this.modelName);
+    rels.forEach(({name, to: toType}) => {
+      Object.defineProperty(this, name, {
+        get() {
+          let {type, id} = this._schema.relationships.getRelated(this, name);
+          let model = this._schema[toCollectionName(type)].find(id);
+          return model;
+        },
+        set(modelOrId) {
+          if (isId(modelOrId)) {
+            let linkage = {
+              modelName: toType,
+              id: modelOrId
+            };
+            this._schema.relationships.setOne(this, name, linkage);
+          } else {
+            this._schema.relationships.setOne(this, name, modelOrId);
+          }
+        }
+      });
+    });
   }
+}
+
+function isId(x) {
+  return typeof x === 'string' || typeof x === 'number';
 }
