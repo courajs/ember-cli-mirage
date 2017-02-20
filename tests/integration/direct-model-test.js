@@ -8,7 +8,7 @@ import {
   registerModels
 } from 'ember-cli-mirage/internal';
 
-module("Integration | DirectModel", {
+module("Integration | DirectModel | Attributes", {
   beforeEach() {
     this.db = new Db();
     this.store = new RelationshipStore();
@@ -31,7 +31,7 @@ module("Integration | DirectModel", {
   }
 });
 
-test("A DirectModel gets attributes from the database", function(assert) {
+test("attrs is populated from the db", function(assert) {
   this.db.people.insert({id: '1', name: 'Aaron'});
 
   let aaron = new DirectModel({
@@ -43,7 +43,7 @@ test("A DirectModel gets attributes from the database", function(assert) {
   assert.deepEqual(aaron.attrs, {id: '1', name: 'Aaron'});
 });
 
-test("A DirectModel has properties for each attribute", function(assert) {
+test("Each attr is populated from the db", function(assert) {
   this.db.people.insert({id: '1', name: 'Aaron'});
 
   let aaron = new DirectModel({
@@ -53,4 +53,18 @@ test("A DirectModel has properties for each attribute", function(assert) {
   });
 
   assert.equal(aaron.name, 'Aaron');
+});
+
+test("Attribute changes are reflected in the database", function(assert) {
+  this.db.people.insert({id: '1', name: 'Aaron'});
+
+  let aaron = new DirectModel({
+    schema: this.schema,
+    type: 'person',
+    id: '1'
+  });
+
+  aaron.name = 'A-ron';
+
+  assert.deepEqual(this.db.people.find('1'), { id: '1', name: 'A-ron'});
 });

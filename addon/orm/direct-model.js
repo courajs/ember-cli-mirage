@@ -33,7 +33,10 @@ export default class DirectModel {
           return this.attrs[attr];
         },
         set(val) {
-          assert(false, 'Unimplemented');
+          this._collection.update(
+              { id: this._id },
+              { [attr]: val }
+          );
         }
       });
     }
