@@ -155,7 +155,7 @@ export default class Server {
     this.urlPrefix = this.urlPrefix || config.urlPrefix || '';
 
     this.db = this.db || new Db();
-    this.relationships = this.relationships || RelationshipStore.create();
+    this.relationships = this.relationships || new RelationshipStore();
     this.serializer = this.serializer || AaronSerializer.create({store: this.relationships});
     if (this.schema) {
       this.schema.registerModels(config.models);

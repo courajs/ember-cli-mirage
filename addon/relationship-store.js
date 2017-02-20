@@ -1,32 +1,31 @@
-import Ember from 'ember';
 import { pluralize, capitalize } from './utils/inflector';
 import { Collection } from 'ember-cli-mirage';
 import setObjectPath from './utils/set-object-path';
 
-export default Ember.Object.extend({
-  init() {
+export default class RelationshipStore {
+  constructor() {
     this._definedRels = {};
     this._rels = {};
-  },
+  }
 
   defineOne(fromType, relationshipName, toType) {
     setObjectPath(this._definedRels, fromType, relationshipName, {
       relatedType: toType,
       count: 'one'
     });
-  },
+  }
 
   defineMany(fromType, relationshipName, toType) {
     setObjectPath(this._definedRels, fromType, relationshipName, {
       relatedType: toType,
       count: 'many'
     });
-  },
+  }
 
   relationshipsForType(type) {
     let relHash = this._definedRels[type] || {};
     return Object.keys(relHash);
-  },
+  }
 
   getRelated(model, relationshipName) {
     this.checkHasRelationship(model, relationshipName);
@@ -36,19 +35,19 @@ export default Ember.Object.extend({
 
     let defaultValue = this.getEmptyForRelationship(model, relationshipName);
     return (this._rels[type] && this._rels[type][id] && this._rels[type][id][relationshipName]) || defaultValue;
-  },
+  }
 
   setOne(from, relationshipName, to) {
     this.checkOne(from, relationshipName, to);
     let linkage = this.linkageForModel(to);
     this.setRelationship(from, relationshipName, linkage);
-  },
+  }
 
   setMany(from, relationshipName, to) {
     this.checkMany(from, relationshipName, to);
     let linkages = to.map(this.linkageForModel);
     this.setRelationship(from, relationshipName, linkages);
-  },
+  }
 
   pushMany(from, relationshipName, to) {
     let tos;
@@ -63,14 +62,14 @@ export default Ember.Object.extend({
     let existing = this.getRelated(from, relationshipName);
     let newLinkages = tos.map(this.linkageForModel);
     this.setRelationship(from, relationshipName, existing.concat(newLinkages));
-  },
+  }
 
   linkageForModel(model) {
     return {
       type: model.modelName,
       id: model.id
     };
-  },
+  }
 
   checkOne(from, relName, to) {
     let rel = this.getRelationship(from, relName);
@@ -94,7 +93,7 @@ export default Ember.Object.extend({
       let message = `A ${fromType}'s ${relName} must be set to ${properArticle} ${properType}. You tried to set it to ${toArticle} ${toType} (id: ${toId})`;
       throw new Error(message);
     }
-  },
+  }
 
   checkMany(from, relName, to) {
     let rel = this.getRelationship(from, relName);
@@ -116,11 +115,11 @@ export default Ember.Object.extend({
         throw new Error(message);
       }
     }
-  },
+  }
 
   checkHasRelationship(from, relName) {
     this.getRelationship(from, relName);
-  },
+  }
 
   getRelationship(from, relName) {
     let type = from.modelName;
@@ -131,7 +130,7 @@ export default Ember.Object.extend({
     }
 
     return rel;
-  },
+  }
 
   getEmptyForRelationship(model, relName) {
     let type = model.modelName;
@@ -141,20 +140,20 @@ export default Ember.Object.extend({
     } else {
       return null;
     }
-  },
+  }
 
   setRelationship(model, relName, value) {
     let type = model.modelName;
     let id = model.id;
     setObjectPath(this._rels, type, id, relName, value);
-  },
+  }
 
   throwUndefinedRelationshipError(relName, modelName) {
     let modelType = pluralize(modelName);
     let message = `Relationship "${relName}" has not been defined for ${modelType}`;
     throw new Error(message);
   }
-});
+}
 
 const VOWELS = ['A', 'E', 'I', 'O', 'U']; // And sometimes Y, but not at the start of a word
 

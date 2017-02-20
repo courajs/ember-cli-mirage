@@ -9,7 +9,7 @@ import registerModels from 'ember-cli-mirage/orm/register-models';
 module("Integration | Model Registry", {
   beforeEach() {
     this.db = new Db();
-    this.store = RelationshipStore.create();
+    this.store = new RelationshipStore();
   }
 });
 
