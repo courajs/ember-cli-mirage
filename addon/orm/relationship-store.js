@@ -55,6 +55,17 @@ export default class RelationshipStore {
     this.setRelationship(from, relationshipName, linkage);
   }
 
+  unsetOne(model, relationshipName) {
+    let {
+      id,
+      modelName: type
+    } = model;
+
+    if (this._rels[type] && this._rels[type][id]) {
+      delete this._rels[type][id][relationshipName];
+    }
+  }
+
   setMany(from, relationshipName, to) {
     this.checkMany(from, relationshipName, to);
     let linkages = to.map(this.linkageForModel);

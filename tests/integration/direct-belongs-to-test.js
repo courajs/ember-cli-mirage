@@ -70,3 +70,32 @@ test("You can relate records by assigning an id", function(assert) {
   assert.equal(linkage.type, 'person');
   assert.equal(linkage.id, aaron.id);
 });
+
+test("You can create an initial relation", function(assert) {
+  let post = this.schema.posts.create({title: 'Introducing Hazy Oasis'});
+
+  let returnedAaron = post.author.create({ name: 'Aaron' });
+  let relatedAaron = post.author;
+  let foundAaron = this.schema.people.find('1');
+  let expectedAttrs = {
+    id: '1',
+    name: 'Aaron'
+  };
+
+  assert.deepEqual(returnedAaron.attrs, expectedAttrs);
+  assert.deepEqual(relatedAaron.attrs, expectedAttrs);
+  assert.deepEqual(foundAaron.attrs, expectedAttrs);
+});
+
+test("You can delete a relationship", function(assert) {
+  let post = this.schema.posts.create({title: 'Introducing Hazy Oasis'});
+  post.author.create({ name: 'Aaron' });
+
+  let linkage = this.schema.relationships.getRelated(post, 'author');
+  assert.deepEqual(linkage, { type: 'person', id: '1' });
+
+  post.author = null;
+
+  linkage = this.schema.relationships.getRelated(post, 'author');
+  assert.equal(linkage, null);
+});

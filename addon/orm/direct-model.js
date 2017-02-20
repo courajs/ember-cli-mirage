@@ -67,19 +67,30 @@ export default class DirectModel {
     rels.forEach(({name, to: toType}) => {
       Object.defineProperty(this, name, {
         get() {
-          let {type, id} = this._schema.relationships.getRelated(this, name);
-          let model = this._schema[toCollectionName(type)].find(id);
-          return model;
+          let found = this._schema.relationships.getRelated(this, name);
+          if (found) {
+            let {type, id} = found;
+            return this._schema[toCollectionName(type)].find(id);
+          } else {
+            return new NullBelongsTo({
+              from: this,
+              type: toType,
+              name: name,
+              schema: this._schema
+            });
+          }
         },
-        set(modelOrId) {
-          if (isId(modelOrId)) {
+        set(val) {
+          if (isId(val)) {
             let linkage = {
               modelName: toType,
-              id: modelOrId
+              id: val
             };
             this._schema.relationships.setOne(this, name, linkage);
+          } else if (!val) {
+            this._schema.relationships.unsetOne(this, name);
           } else {
-            this._schema.relationships.setOne(this, name, modelOrId);
+            this._schema.relationships.setOne(this, name, val);
           }
         }
       });
@@ -89,4 +100,20 @@ export default class DirectModel {
 
 function isId(x) {
   return typeof x === 'string' || typeof x === 'number';
+}
+
+class NullBelongsTo {
+  constructor({ from, name, type, schema }) {
+    this._from = from;
+    this._type = type;
+    this._name = name;
+    this._schema = schema;
+  }
+
+  create(attrs) {
+    let collectionName = toCollectionName(this._type);
+    let related = this._schema[collectionName].create(attrs);
+    this._schema.relationships.setOne(this._from, this._name, related);
+    return related;
+  }
 }
