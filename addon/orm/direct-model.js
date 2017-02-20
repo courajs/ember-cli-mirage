@@ -4,15 +4,20 @@ import {
 } from 'ember-cli-mirage/utils';
 
 export default class DirectModel {
-  constructor({ schema, type, id }) {
+  constructor({ schema, type, attrs, id }) {
     assert(schema, 'Pass a schema to DirectModel');
     assert(type, 'Pass a type to DirectModel');
-    assert(present(id), 'Pass an id to DirectModel');
+    assert(attrs || present(id), 'Pass either attributes or an id to DirectModel');
 
     this._schema = schema;
-    this._id = id;
-
     this.modelName = type;
+
+    if (attrs) {
+      let inserted = this._collection.insert(attrs);
+      this._id = inserted.id;
+    } else {
+      this._id = id;
+    }
 
     this._proxyAttrs();
   }
