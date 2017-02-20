@@ -54,13 +54,13 @@ test(".all() returns DirectModels", function(assert) {
   assert.equal(aaron.name, 'Aaron', "The models are correctly created");
 });
 
-// test("A new model can be created from attributes", function(assert) {
-//   let aaron = this.interface.create({ name: 'Aaron' });
-//
-//   assert.equal(aaron.id, '1');
-//   assert.equal(aaron.name, 'Aaron');
-//   assert.deepEqual(
-//       this.db.people.find('1'),
-//       { id: '1', name: 'Aaron' }
-//   );
-// });
+test("A new model can be created from attributes", function(assert) {
+  let aaron = this.interface.create({ name: 'Aaron' });
+
+  assert.equal(aaron.id, '1');
+  assert.equal(aaron.name, 'Aaron');
+  assert.deepEqual(
+      this.db.people.find('1'),
+      { id: '1', name: 'Aaron' }
+  );
+});

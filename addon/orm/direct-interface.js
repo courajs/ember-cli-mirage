@@ -16,6 +16,11 @@ export default class DirectInterface {
     this.type = type;
   }
 
+  create(attrs) {
+    let {id} = this._collection.insert(attrs);
+    return this.find(id);
+  }
+
   find(id) {
     return new DirectModel({
       schema: this._schema,
