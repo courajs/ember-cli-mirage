@@ -45,6 +45,16 @@ test(".find() finds a DirectModel", function(assert) {
   assert.equal(aaron.name, 'Aaron', "It finds and populates the model");
 });
 
+test(".find() can find multiple models", function(assert) {
+  let [me, you] = this.db.people.insert([{name: 'me'}, {name: 'you'}]);
+
+  let names = this.interface.find(me.id, you.id).map(p => p.name);
+  assert.deepEqual(names, ['me', 'you'], "Find works with multiple arguments");
+
+  names = this.interface.find([me.id, you.id]).map(p => p.name);
+  assert.deepEqual(names, ['me', 'you'], "Find works with an array argument");
+});
+
 test(".all() returns DirectModels", function(assert) {
   this.db.people.insert({name: 'Aaron'});
 

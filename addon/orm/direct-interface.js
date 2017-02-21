@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { DirectModel } from 'ember-cli-mirage/internal';
 import {
   toCollectionName
@@ -21,12 +22,22 @@ export default class DirectInterface {
     return this.find(id);
   }
 
-  find(id) {
-    return new DirectModel({
-      schema: this._schema,
-      type: this.type,
-      id: id
-    });
+  find(...ids) {
+    if (ids.length === 1 && isId(ids[0])) {
+      return new DirectModel({
+        schema: this._schema,
+        type: this.type,
+        id: ids[0]
+      });
+    } else {
+      return _.flatten(ids).map((id) => {
+        return new DirectModel({
+          schema: this._schema,
+          type: this.type,
+          id: id
+        });
+      });
+    }
   }
 
   all() {
@@ -36,4 +47,8 @@ export default class DirectInterface {
   get _collection() {
     return this._schema.db[toCollectionName(this.type)];
   }
+}
+
+function isId(x) {
+  return typeof x === 'string' || typeof x === 'number';
 }
