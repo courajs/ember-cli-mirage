@@ -64,36 +64,52 @@ export default class DirectModel {
 
   _setupRelationships() {
     let rels = this._schema.relationships.relationshipsForType(this.modelName);
-    rels.forEach(({name, to: toType}) => {
-      Object.defineProperty(this, name, {
-        get() {
-          let found = this._schema.relationships.getRelated(this, name);
-          if (found) {
-            let {type, id} = found;
-            return this._schema[toCollectionName(type)].find(id);
-          } else {
-            return new NullBelongsTo({
-              from: this,
-              type: toType,
-              name: name,
-              schema: this._schema
-            });
-          }
-        },
-        set(val) {
-          if (isId(val)) {
-            let linkage = {
-              modelName: toType,
-              id: val
-            };
-            this._schema.relationships.setOne(this, name, linkage);
-          } else if (!val) {
-            this._schema.relationships.unsetOne(this, name);
-          } else {
-            this._schema.relationships.setOne(this, name, val);
-          }
+    rels.forEach(({name, count, to}) => {
+      if (count === 'one') {
+        this._defineToOne(name, to);
+      } else if (count === 'many') {
+        this._defineToMany(name, to);
+      }
+    });
+  }
+
+  _defineToOne(name, toType) {
+    Object.defineProperty(this, name, {
+      get() {
+        let found = this._schema.relationships.getRelated(this, name);
+        if (found) {
+          let {type, id} = found;
+          return this._schema[toCollectionName(type)].find(id);
+        } else {
+          return new NullBelongsTo({
+            from: this,
+            type: toType,
+            name: name,
+            schema: this._schema
+          });
         }
-      });
+      },
+      set(val) {
+        if (isId(val)) {
+          let linkage = {
+            modelName: toType,
+            id: val
+          };
+          this._schema.relationships.setOne(this, name, linkage);
+        } else if (!val) {
+          this._schema.relationships.unsetOne(this, name);
+        } else {
+          this._schema.relationships.setOne(this, name, val);
+        }
+      }
+    });
+  }
+
+  _defineToMany(name, toType) {
+    Object.defineProperty(this, name, {
+      get() {
+        return new RelatedRecordArray();
+      }
     });
   }
 }
@@ -116,4 +132,7 @@ class NullBelongsTo {
     this._schema.relationships.setOne(this._from, this._name, related);
     return related;
   }
+}
+
+class RelatedRecordArray extends Array {
 }

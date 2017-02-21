@@ -15,14 +15,11 @@ module("Integration | DirectModel | BelongsTo relationships", {
     this.db = new Db();
     this.store = new RelationshipStore();
 
-    this.Post = Model.extend({
-      author: belongsTo('person')
-    });
-    this.Person = Model.extend({});
-
     this.models = {
-      post: this.Post,
-      person: this.Person
+      person: Model.extend({}),
+      post: Model.extend({
+        author: belongsTo('person')
+      })
     };
 
     registerModels({
