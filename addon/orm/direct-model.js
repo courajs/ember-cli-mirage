@@ -108,7 +108,12 @@ export default class DirectModel {
   _defineToMany(name, toType) {
     Object.defineProperty(this, name, {
       get() {
-        return new RelatedRecordArray();
+        return new RelatedRecordArray({
+          from: this,
+          name: name,
+          type: toType,
+          schema: this._schema
+        });
       }
     });
   }
@@ -135,4 +140,11 @@ class NullBelongsTo {
 }
 
 class RelatedRecordArray extends Array {
+  constructor({ from, name, type, schema }) {
+    super();
+    let relatedCollection = toCollectionName(type);
+    let relatedIds = schema.relationships.getRelated(from, name).map(r => r.id);
+    let related = schema[relatedCollection].find(...relatedIds);
+    this.push(...related);
+  }
 }
