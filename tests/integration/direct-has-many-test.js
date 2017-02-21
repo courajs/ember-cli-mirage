@@ -56,3 +56,15 @@ test("You get an array of related records", function(assert) {
   let commentBodies = post.comments.map(comment => comment.body);
   assert.deepEqual(commentBodies, ["Nice post!", "Actually, this is factually innacurate."]);
 });
+
+test("The related array has an ids property", function(assert) {
+  let post = this.schema.posts.create({});
+  let comments = [
+    this.schema.comments.create({id: '4'}),
+    this.schema.comments.create({id: 'abc'})
+  ];
+
+  this.store.setMany(post, 'comments', comments);
+
+  assert.deepEqual(post.comments.ids, ['4', 'abc']);
+});

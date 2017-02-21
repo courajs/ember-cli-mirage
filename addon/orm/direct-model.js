@@ -142,9 +142,19 @@ class NullBelongsTo {
 class RelatedRecordArray extends Array {
   constructor({ from, name, type, schema }) {
     super();
+
+    this._from = from;
+    this._type = type;
+    this._name = name;
+    this._schema = schema;
+
     let relatedCollection = toCollectionName(type);
-    let relatedIds = schema.relationships.getRelated(from, name).map(r => r.id);
-    let related = schema[relatedCollection].find(...relatedIds);
+    let related = schema[relatedCollection].find(this.ids);
     this.push(...related);
+  }
+
+  get ids() {
+    let linkages = this._schema.relationships.getRelated(this._from, this._name);
+    return linkages.map(l => l.id);
   }
 }
