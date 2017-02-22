@@ -114,6 +114,19 @@ export default class DirectModel {
           type: toType,
           schema: this._schema
         });
+      },
+      set(val) {
+        let linkages = val.map(function(modelOrId) {
+          if (isId(modelOrId)) {
+            return {
+              id: modelOrId,
+              modelName: toType
+            };
+          } else {
+            return modelOrId;
+          }
+        });
+        return this._schema.relationships.setMany(this, name, linkages);
       }
     });
   }

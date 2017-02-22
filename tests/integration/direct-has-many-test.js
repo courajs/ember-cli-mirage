@@ -68,3 +68,27 @@ test("The related array has an ids property", function(assert) {
 
   assert.deepEqual(post.comments.ids, ['4', 'abc']);
 });
+
+test("You can set an array of related records", function(assert) {
+  let post = this.schema.posts.create({});
+
+  let comments = [
+    this.schema.comments.create({id: '4'}),
+    this.schema.comments.create({id: 'abc'})
+  ];
+
+  post.comments = comments;
+
+  assert.deepEqual(post.comments.ids, ['4', 'abc']);
+});
+
+test("You can set an array of related record ids", function(assert) {
+  let post = this.schema.posts.create({});
+
+  this.schema.comments.create({id: '4'});
+  this.schema.comments.create({id: 'abc'});
+
+  post.comments = ['4', 'abc'];
+
+  assert.deepEqual(post.comments.ids, ['4', 'abc']);
+});
