@@ -33,92 +33,64 @@ module("Integration | DirectModel | HasMany relationships", {
       store: this.store,
       models: this.models
     });
+
+    this.post = this.schema.posts.create({title: "I wrote this"});
+    this.comments = [
+      this.schema.comments.create({id: 'a', body: "Nice post!"}),
+      this.schema.comments.create({id: 'b', body: "Actually, this is factually innacurate."})
+    ];
+    this.commentA = this.comments[0];
+    this.commentB = this.comments[1];
   }
 });
 
 test("You get an empty array if there are no associated records", function(assert) {
-  let post = this.schema.posts.create({title: 'I wrote this'});
-
-  assert.ok(post.comments instanceof Array);
-  assert.equal(post.comments.length, 0);
+  assert.ok(this.post.comments instanceof Array);
+  assert.equal(this.post.comments.length, 0);
 });
 
 test("You get an array of related records", function(assert) {
-  let post = this.schema.posts.create({title: "I'm still writing"});
-  let comments = [
-    this.schema.comments.create({body: "Nice post!"}),
-    this.schema.comments.create({body: "Actually, this is factually innacurate."})
-  ];
+  this.store.setMany(this.post, 'comments', this.comments);
 
-  this.store.setMany(post, 'comments', comments);
-
-  assert.equal(post.comments.length, 2);
-  let commentBodies = post.comments.map(comment => comment.body);
+  assert.equal(this.post.comments.length, 2);
+  let commentBodies = this.post.comments.map(comment => comment.body);
   assert.deepEqual(commentBodies, ["Nice post!", "Actually, this is factually innacurate."]);
 });
 
 test("The related array has an ids property", function(assert) {
-  let post = this.schema.posts.create({});
-  let comments = [
-    this.schema.comments.create({id: '4'}),
-    this.schema.comments.create({id: 'abc'})
-  ];
+  this.store.setMany(this.post, 'comments', this.comments);
 
-  this.store.setMany(post, 'comments', comments);
-
-  assert.deepEqual(post.comments.ids, ['4', 'abc']);
+  assert.deepEqual(this.post.comments.ids, ['a', 'b']);
 });
 
 test("You can set an array of related records", function(assert) {
-  let post = this.schema.posts.create({});
+  this.post.comments = this.comments;
 
-  let comments = [
-    this.schema.comments.create({id: '4'}),
-    this.schema.comments.create({id: 'abc'})
-  ];
-
-  post.comments = comments;
-
-  assert.deepEqual(post.comments.ids, ['4', 'abc']);
+  assert.deepEqual(this.post.comments.ids, ['a', 'b']);
 });
 
 test("You can set an array of related record ids", function(assert) {
-  let post = this.schema.posts.create({});
+  this.post.comments = ['a', 'b'];
 
-  this.schema.comments.create({id: '4'});
-  this.schema.comments.create({id: 'abc'});
-
-  post.comments = ['4', 'abc'];
-
-  assert.deepEqual(post.comments.ids, ['4', 'abc']);
+  assert.deepEqual(this.post.comments.ids, ['a', 'b']);
 });
 
 test("You can push a model into a relationship", function(assert) {
-  let post = this.schema.posts.create({});
+  this.post.comments = [this.comments[0]];
 
-  let a = this.schema.comments.create({id: '4'});
-  let b = this.schema.comments.create({id: 'abc'});
+  assert.deepEqual(this.post.comments.ids, ['a']);
 
-  post.comments = [a];
+  this.post.comments.push(this.comments[1]);
 
-  assert.deepEqual(post.comments.ids, ['4']);
-
-  post.comments.push(b);
-
-  assert.deepEqual(post.comments.ids, ['4', 'abc']);
+  assert.deepEqual(this.post.comments.ids, ['a', 'b']);
 });
 
 test("You can push an id into a relationship", function(assert) {
-  let post = this.schema.posts.create({});
+  this.post.comments = [this.commentA];
 
-  let a = this.schema.comments.create({id: '4'});
-  this.schema.comments.create({id: 'abc'});
+  assert.deepEqual(this.post.comments.ids, ['a']);
 
-  post.comments = [a];
+  this.post.comments.push('b');
 
-  assert.deepEqual(post.comments.ids, ['4']);
-
-  post.comments.push('abc');
-
-  assert.deepEqual(post.comments.ids, ['4', 'abc']);
+  assert.deepEqual(this.post.comments.ids, ['a', 'b']);
 });
