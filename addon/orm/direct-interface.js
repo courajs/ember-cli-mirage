@@ -22,6 +22,14 @@ export default class DirectInterface {
     return this.find(id);
   }
 
+  createList(count, attrs) {
+    let result = [];
+    for (let i = 0; i < count; i++) {
+      result.push(this.create(attrs));
+    }
+    return result;
+  }
+
   find(...ids) {
     if (ids.length === 1 && isId(ids[0])) {
       return new DirectModel({

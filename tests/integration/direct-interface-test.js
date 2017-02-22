@@ -74,3 +74,17 @@ test("A new model can be created from attributes", function(assert) {
       { id: '1', name: 'Aaron' }
   );
 });
+
+test("A list of models can be created from attributes", function(assert) {
+  let [a, b] = this.interface.createList(2, { employed: true });
+
+  assert.equal(a.id, '1');
+  assert.equal(b.id, '2');
+  assert.equal(b.employed, true);
+  assert.equal(b.modelName, 'person');
+
+  assert.deepEqual(
+    this.db.people,
+    [{id: '1', employed: true}, {id: '2', employed: true}]
+  );
+});
