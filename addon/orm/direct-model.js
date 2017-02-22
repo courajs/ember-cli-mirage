@@ -163,11 +163,25 @@ class RelatedRecordArray extends Array {
 
     let relatedCollection = toCollectionName(type);
     let related = schema[relatedCollection].find(this.ids);
-    this.push(...related);
+    super.push(...related);
   }
 
   get ids() {
     let linkages = this._schema.relationships.getRelated(this._from, this._name);
     return linkages.map(l => l.id);
+  }
+
+  push(...vals) {
+    let linkages = vals.map((val) => {
+      if (isId(val)) {
+        return {
+          id: val,
+          modelName: this._type
+        };
+      } else {
+        return val;
+      }
+    });
+    this._schema.relationships.pushMany(this._from, this._name, linkages);
   }
 }

@@ -92,3 +92,33 @@ test("You can set an array of related record ids", function(assert) {
 
   assert.deepEqual(post.comments.ids, ['4', 'abc']);
 });
+
+test("You can push a model into a relationship", function(assert) {
+  let post = this.schema.posts.create({});
+
+  let a = this.schema.comments.create({id: '4'});
+  let b = this.schema.comments.create({id: 'abc'});
+
+  post.comments = [a];
+
+  assert.deepEqual(post.comments.ids, ['4']);
+
+  post.comments.push(b);
+
+  assert.deepEqual(post.comments.ids, ['4', 'abc']);
+});
+
+test("You can push an id into a relationship", function(assert) {
+  let post = this.schema.posts.create({});
+
+  let a = this.schema.comments.create({id: '4'});
+  this.schema.comments.create({id: 'abc'});
+
+  post.comments = [a];
+
+  assert.deepEqual(post.comments.ids, ['4']);
+
+  post.comments.push('abc');
+
+  assert.deepEqual(post.comments.ids, ['4', 'abc']);
+});
