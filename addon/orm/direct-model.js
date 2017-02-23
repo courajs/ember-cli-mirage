@@ -172,7 +172,17 @@ class RelatedRecordArray extends Array {
   }
 
   push(...vals) {
-    let linkages = vals.map((val) => {
+    let linkages = this._toLinkages(vals);
+    this._schema.relationships.pushMany(this._from, this._name, linkages);
+  }
+
+  remove(...vals) {
+    let linkages = this._toLinkages(vals);
+    this._schema.relationships.removeMany(this._from, this._name, linkages);
+  }
+
+  _toLinkages(idsOrModels) {
+    return idsOrModels.map((val) => {
       if (isId(val)) {
         return {
           id: val,
@@ -182,6 +192,5 @@ class RelatedRecordArray extends Array {
         return val;
       }
     });
-    this._schema.relationships.pushMany(this._from, this._name, linkages);
   }
 }

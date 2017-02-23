@@ -53,44 +53,47 @@ test("You get an array of related records", function(assert) {
   this.store.setMany(this.post, 'comments', this.comments);
 
   assert.equal(this.post.comments.length, 2);
-  let commentBodies = this.post.comments.map(comment => comment.body);
-  assert.deepEqual(commentBodies, ["Nice post!", "Actually, this is factually innacurate."]);
+  let commentIds = this.post.comments.map(comment => comment.id);
+  assert.deepEqual(commentIds, ['a', 'b']);
 });
 
 test("The related array has an ids property", function(assert) {
   this.store.setMany(this.post, 'comments', this.comments);
-
   assert.deepEqual(this.post.comments.ids, ['a', 'b']);
 });
 
 test("You can set an array of related records", function(assert) {
   this.post.comments = this.comments;
-
   assert.deepEqual(this.post.comments.ids, ['a', 'b']);
 });
 
 test("You can set an array of related record ids", function(assert) {
   this.post.comments = ['a', 'b'];
-
   assert.deepEqual(this.post.comments.ids, ['a', 'b']);
 });
 
 test("You can push a model into a relationship", function(assert) {
-  this.post.comments = [this.comments[0]];
-
+  this.post.comments = [this.commentA];
   assert.deepEqual(this.post.comments.ids, ['a']);
-
-  this.post.comments.push(this.comments[1]);
-
+  this.post.comments.push(this.commentB);
   assert.deepEqual(this.post.comments.ids, ['a', 'b']);
 });
 
 test("You can push an id into a relationship", function(assert) {
   this.post.comments = [this.commentA];
-
   assert.deepEqual(this.post.comments.ids, ['a']);
-
   this.post.comments.push('b');
-
   assert.deepEqual(this.post.comments.ids, ['a', 'b']);
+});
+
+test("You can remove a model from a relationship", function(assert) {
+  this.post.comments = this.comments;
+  this.post.comments.remove(this.commentA);
+  assert.deepEqual(this.post.comments.ids, ['b']);
+});
+
+test("You can remove a model from a relationship via id", function(assert) {
+  this.post.comments = this.comments;
+  this.post.comments.remove('a');
+  assert.deepEqual(this.post.comments.ids, ['b']);
 });
