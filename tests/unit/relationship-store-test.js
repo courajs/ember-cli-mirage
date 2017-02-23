@@ -145,3 +145,27 @@ test("You can push multiple items into to-many relationships", function(assert) 
   ];
   assert.deepEqual(related, expected);
 });
+
+
+test("You can remove single items from to-many relationships", function(assert) {
+  this.store.defineMany('thing', 'comments', 'other');
+  this.store.setMany(a, 'comments', [b, c]);
+  this.store.removeMany(a, 'comments', c);
+
+  let related = this.store.getRelated(a, 'comments');
+  let expected = [
+    { type: 'other', id: 'b' }
+  ];
+  assert.deepEqual(related, expected);
+});
+
+
+test("You can remove multiple items from to-many relationships", function(assert) {
+  this.store.defineMany('thing', 'comments', 'other');
+  this.store.setMany(a, 'comments', [b, c]);
+  this.store.removeMany(a, 'comments', [b, c]);
+
+  let related = this.store.getRelated(a, 'comments');
+  let expected = [];
+  assert.deepEqual(related, expected);
+});

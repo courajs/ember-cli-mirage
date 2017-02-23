@@ -87,6 +87,24 @@ export default class RelationshipStore {
     this.setRelationship(from, relationshipName, existing.concat(newLinkages));
   }
 
+  removeMany(from, relationshipName, to) {
+    let tos;
+    if (Array.isArray(to)) {
+      tos = to;
+    } else if (to instanceof Collection) {
+      tos = to.models;
+    } else {
+      tos = [to];
+    }
+    let existing = this.getRelated(from, relationshipName);
+    let newLinkages = existing.filter(function(other) {
+      return tos.every(function(toRemove) {
+        return toRemove.modelName !== other.type || toRemove.id !== other.id;
+      });
+    });
+    this.setRelationship(from, relationshipName, newLinkages);
+  }
+
   linkageForModel(model) {
     return {
       type: model.modelName,
