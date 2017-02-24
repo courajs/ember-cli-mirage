@@ -1,5 +1,8 @@
 import { module, test } from 'qunit';
-import { RelationshipStore } from 'ember-cli-mirage/internal';
+import {
+  RelationshipStore,
+  ResourceIdentifier
+} from 'ember-cli-mirage/internal';
 
 import fakeModel from './fake-model';
 
@@ -103,7 +106,7 @@ test("Returns a resource identifier object for set to-one relationships", functi
   this.store.setOne(a, 'author', b);
 
   let related = this.store.getRelated(a, 'author');
-  assert.deepEqual(related, { type: 'other', id: 'b' });
+  assert.deepEqual(related, new ResourceIdentifier({ type: 'other', id: 'b' }));
 });
 
 
@@ -113,8 +116,8 @@ test("Returns resource identifiers for set to-many relationships", function(asse
 
   let related = this.store.getRelated(a, 'comments');
   let expected = [
-    { type: 'other', id: 'b' },
-    { type: 'other', id: 'c' }
+    new ResourceIdentifier({ type: 'other', id: 'b' }),
+    new ResourceIdentifier({ type: 'other', id: 'c' })
   ];
   assert.deepEqual(related, expected);
 });
@@ -127,8 +130,8 @@ test("You can push single items into to-many relationships", function(assert) {
 
   let related = this.store.getRelated(a, 'comments');
   let expected = [
-    { type: 'other', id: 'b' },
-    { type: 'other', id: 'c' }
+    new ResourceIdentifier({ type: 'other', id: 'b' }),
+    new ResourceIdentifier({ type: 'other', id: 'c' })
   ];
   assert.deepEqual(related, expected);
 });
@@ -140,8 +143,8 @@ test("You can push multiple items into to-many relationships", function(assert) 
 
   let related = this.store.getRelated(a, 'comments');
   let expected = [
-    { type: 'other', id: 'b' },
-    { type: 'other', id: 'c' }
+    new ResourceIdentifier({ type: 'other', id: 'b' }),
+    new ResourceIdentifier({ type: 'other', id: 'c' })
   ];
   assert.deepEqual(related, expected);
 });
@@ -154,7 +157,7 @@ test("You can remove single items from to-many relationships", function(assert) 
 
   let related = this.store.getRelated(a, 'comments');
   let expected = [
-    { type: 'other', id: 'b' }
+    new ResourceIdentifier({ type: 'other', id: 'b' })
   ];
   assert.deepEqual(related, expected);
 });

@@ -106,10 +106,10 @@ export default class RelationshipStore {
   }
 
   linkageForModel(model) {
-    return {
+    return new ResourceIdentifier({
       type: model.modelName,
       id: model.id
-    };
+    });
   }
 
   checkOne(from, relName, to) {
@@ -204,4 +204,22 @@ function vowel(char) {
 
 function articleFor(word) {
   return vowel(word[0]) ? 'an' : 'a';
+}
+
+export class ResourceIdentifier {
+  constructor({type, id}) {
+    this.type = type;
+    this.id = id;
+  }
+
+  get props() {
+    return {
+      type: this.type,
+      id: this.id
+    };
+  }
+
+  is(props) {
+    return this.type === props.type && this.id === props.id;
+  }
 }

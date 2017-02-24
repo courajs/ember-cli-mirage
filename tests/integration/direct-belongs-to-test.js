@@ -6,6 +6,7 @@ import {
 import {
   Db,
   RelationshipStore,
+  ResourceIdentifier,
   Schema,
   registerModels
 } from 'ember-cli-mirage/internal';
@@ -89,7 +90,7 @@ test("You can delete a relationship", function(assert) {
   post.author.create({ name: 'Aaron' });
 
   let linkage = this.schema.relationships.getRelated(post, 'author');
-  assert.deepEqual(linkage, { type: 'person', id: '1' });
+  assert.deepEqual(linkage, new ResourceIdentifier({ type: 'person', id: '1' }));
 
   post.author = null;
 
