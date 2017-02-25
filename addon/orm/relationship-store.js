@@ -51,7 +51,7 @@ export default class RelationshipStore {
 
   setOne(from, relationshipName, to) {
     this.checkOne(from, relationshipName, to);
-    let linkage = this.linkageForModel(to);
+    let linkage = this.toIdentifier(to);
     this.setRelationship(from, relationshipName, linkage);
   }
 
@@ -67,9 +67,9 @@ export default class RelationshipStore {
   }
 
   setMany(from, relationshipName, to) {
-    this.checkMany(from, relationshipName, to);
-    let linkages = to.map(this.linkageForModel);
-    this.setRelationship(from, relationshipName, linkages);
+    let tos = to.map(this.toIdentifier);
+    this.checkMany(from, relationshipName, tos);
+    this.setRelationship(from, relationshipName, tos);
   }
 
   pushMany(from, relationshipName, to) {
@@ -81,10 +81,10 @@ export default class RelationshipStore {
     } else {
       tos = [to];
     }
+    tos = tos.map(this.toIdentifier);
     this.checkMany(from, relationshipName, tos);
     let existing = this.getRelated(from, relationshipName);
-    let newLinkages = tos.map(this.linkageForModel);
-    this.setRelationship(from, relationshipName, existing.concat(newLinkages));
+    this.setRelationship(from, relationshipName, existing.concat(tos));
   }
 
   removeMany(from, relationshipName, to) {
@@ -105,11 +105,15 @@ export default class RelationshipStore {
     this.setRelationship(from, relationshipName, newLinkages);
   }
 
-  linkageForModel(model) {
-    return new ResourceIdentifier({
-      type: model.modelName,
-      id: model.id
-    });
+  toIdentifier(model) {
+    if (model instanceof ResourceIdentifier) {
+      return model;
+    } else {
+      return new ResourceIdentifier({
+        type: model.modelName,
+        id: model.id
+      });
+    }
   }
 
   checkOne(from, relName, to) {
@@ -146,10 +150,10 @@ export default class RelationshipStore {
     }
 
     for (let target of to) {
-      if (target.modelName !== rel.to) {
+      if (target.type !== rel.to) {
         let fromType = capitalize(from.modelName);
         let properTypes = capitalize(pluralize(rel.to));
-        let toType = capitalize(target.modelName);
+        let toType = capitalize(target.type);
         let toId = JSON.stringify(target.id);
 
         let message = `A ${fromType}'s ${relName} must consist of ${properTypes}. You tried to add a ${toType} (id: ${toId})`;

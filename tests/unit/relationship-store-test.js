@@ -109,6 +109,9 @@ test("Returns a resource identifier object for set to-one relationships", functi
   assert.deepEqual(related, new ResourceIdentifier({ type: 'other', id: 'b' }));
 });
 
+// test You can set a to-one relationship with a model
+// test You can set a to-one relationship with a resource identifier
+
 
 test("Returns resource identifiers for set to-many relationships", function(assert) {
   this.store.defineMany('thing', 'comments', 'other');
@@ -122,11 +125,26 @@ test("Returns resource identifiers for set to-many relationships", function(asse
   assert.deepEqual(related, expected);
 });
 
+// test You can set a to-many relationship with to models
+// test You can set a to-many relationship with to resource identifiers
 
-test("You can push single items into to-many relationships", function(assert) {
+test("You can push models into to-many relationships", function(assert) {
   this.store.defineMany('thing', 'comments', 'other');
   this.store.setMany(a, 'comments', [b]);
   this.store.pushMany(a, 'comments', c);
+
+  let related = this.store.getRelated(a, 'comments');
+  let expected = [
+    new ResourceIdentifier({ type: 'other', id: 'b' }),
+    new ResourceIdentifier({ type: 'other', id: 'c' })
+  ];
+  assert.deepEqual(related, expected);
+});
+
+test("You can push identifiers into to-many relationships", function(assert) {
+  this.store.defineMany('thing', 'comments', 'other');
+  this.store.setMany(a, 'comments', [b]);
+  this.store.pushMany(a, 'comments', new ResourceIdentifier({type: 'other', id: 'c'}));
 
   let related = this.store.getRelated(a, 'comments');
   let expected = [
@@ -150,7 +168,7 @@ test("You can push multiple items into to-many relationships", function(assert) 
 });
 
 
-test("You can remove single items from to-many relationships", function(assert) {
+test("You can remove models from to-many relationships", function(assert) {
   this.store.defineMany('thing', 'comments', 'other');
   this.store.setMany(a, 'comments', [b, c]);
   this.store.removeMany(a, 'comments', c);
@@ -161,6 +179,8 @@ test("You can remove single items from to-many relationships", function(assert) 
   ];
   assert.deepEqual(related, expected);
 });
+
+// test You can remove resource identifiiers from to-many relationships
 
 
 test("You can remove multiple items from to-many relationships", function(assert) {
