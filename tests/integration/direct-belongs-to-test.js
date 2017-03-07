@@ -85,6 +85,15 @@ test("You can create an initial relation", function(assert) {
   assert.deepEqual(foundAaron.attrs, expectedAttrs);
 });
 
+test("You can replace an existing relation with a newly created record", function(assert) {
+  let post = this.schema.posts.create({title: 'Introducing Hazy Oasis'});
+  post.author.create({ name: 'Aaron' });
+  post.author.create({ name: 'Aaaaron' });
+  assert.equal(post.author.name, 'Aaaaron');
+  let names = this.schema.people.all().map(x=>x.name);
+  assert.deepEqual(names, ['Aaron', 'Aaaaron']);
+});
+
 test("You can delete a relationship", function(assert) {
   let post = this.schema.posts.create({title: 'Introducing Hazy Oasis'});
   post.author.create({ name: 'Aaron' });

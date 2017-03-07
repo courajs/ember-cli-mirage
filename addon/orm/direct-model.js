@@ -79,7 +79,14 @@ export default class DirectModel {
         let found = this._schema.relationships.getRelated(this, name);
         if (found) {
           let {type, id} = found;
-          return this._schema[toCollectionName(type)].find(id);
+          let related = this._schema[toCollectionName(type)].find(id);
+          wrapBelongsTo(related, {
+            from: this,
+            type: toType,
+            name: name,
+            schema: this._schema
+          });
+          return related;
         } else {
           return new NullBelongsTo({
             from: this,
@@ -134,6 +141,15 @@ export default class DirectModel {
 
 function isId(x) {
   return typeof x === 'string' || typeof x === 'number';
+}
+
+function wrapBelongsTo(related, {from, name, type, schema}) {
+  related.create = function(attrs) {
+    let collectionName = toCollectionName(type);
+    let related = schema[collectionName].create(attrs);
+    schema.relationships.setOne(from, name, related);
+    return related;
+  };
 }
 
 class NullBelongsTo {
