@@ -181,6 +181,21 @@ class RelatedRecordArray extends Array {
     this._schema.relationships.removeMany(this._from, this._name, linkages);
   }
 
+  create(attrs) {
+    let collectionName = toCollectionName(this._type);
+    let related = this._schema[collectionName].create(attrs);
+    this.push(related);
+    return related;
+  }
+
+  createList(count, attrs) {
+    let result = [];
+    for (let i = 0; i < count; i++) {
+      result.push(this.create(attrs));
+    }
+    return result;
+  }
+
   _toLinkages(idsOrModels) {
     return idsOrModels.map((val) => {
       if (isId(val)) {

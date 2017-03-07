@@ -97,3 +97,27 @@ test("You can remove a model from a relationship via id", function(assert) {
   this.post.comments.remove('a');
   assert.deepEqual(this.post.comments.ids, ['b']);
 });
+
+test("You can create one entry in a to-many relationship", function(assert) {
+  let body = "thanks for this great article";
+  this.post.comments.create({body});
+  assert.equal(this.post.comments.length, 1);
+  assert.equal(this.post.comments[0].body, body);
+});
+
+test("You can create one entry in a to-many relationship", function(assert) {
+  let body = "thanks for this great article";
+  let comment = this.post.comments.create({body});
+  assert.equal(comment.body, body);
+  assert.equal(this.post.comments.length, 1);
+  assert.equal(this.post.comments[0].body, body);
+});
+
+test("You can create many entries in a to-many relationship", function(assert) {
+  let body = "buy my product bit.ly/scam";
+  let comments = this.post.comments.createList(2, {body});
+  assert.equal(comments.length, 2);
+  assert.equal(comments[1].body, body);
+  assert.equal(this.post.comments.length, 2);
+  assert.equal(this.post.comments[1].body, body);
+});
