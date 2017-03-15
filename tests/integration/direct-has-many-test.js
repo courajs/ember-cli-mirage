@@ -39,6 +39,7 @@ module("Integration | DirectModel | HasMany relationships", {
       this.schema.comments.create({id: 'a', body: "Nice post!"}),
       this.schema.comments.create({id: 'b', body: "Actually, this is factually innacurate."})
     ];
+    this.commentIdentifiers = this.comments.map(x => x.identifier);
     this.commentA = this.comments[0];
     this.commentB = this.comments[1];
   }
@@ -50,7 +51,7 @@ test("You get an empty array if there are no associated records", function(asser
 });
 
 test("You get an array of related records", function(assert) {
-  this.store.setMany(this.post, 'comments', this.comments);
+  this.store.setMany(this.post.identifier, 'comments', this.commentIdentifiers);
 
   assert.equal(this.post.comments.length, 2);
   let commentIds = this.post.comments.map(comment => comment.id);
@@ -58,7 +59,7 @@ test("You get an array of related records", function(assert) {
 });
 
 test("The related array has an ids property", function(assert) {
-  this.store.setMany(this.post, 'comments', this.comments);
+  this.store.setMany(this.post.identifier, 'comments', this.commentIdentifiers);
   assert.deepEqual(this.post.comments.ids, ['a', 'b']);
 });
 

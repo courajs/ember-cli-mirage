@@ -4,17 +4,15 @@ import {
   ResourceIdentifier
 } from 'ember-cli-mirage/internal';
 
-import fakeModel from './fake-model';
-
 module('Unit | RelationshipStore', {
   beforeEach() {
     this.store = new RelationshipStore();
   }
 });
 
-let a = fakeModel('thing', 'a', { hey: 'there' });
-let b = fakeModel('other', 'b', { some: 'info' });
-let c = fakeModel('other', 'c', { some: 'other info' });
+let a = new ResourceIdentifier('thing', 'a');
+let b = new ResourceIdentifier('other', 'b');
+let c = new ResourceIdentifier('other', 'c');
 
 
 test('relationships must be defined before they can be get or set', function(assert) {
@@ -71,6 +69,30 @@ test('getRelated() returns null or [] for empty relationships', function(assert)
 });
 
 
+test("Throws an error when trying to set with something other than a ResourceIdentifier", function(assert) {
+  this.store.defineOne('thing', 'author', 'other');
+  this.store.defineMany('thing', 'comments', 'other');
+
+  assert.throws(() => {
+    this.store.setOne(a, 'author', { type: 'thing', id: 'whatever' });
+  },
+  /Relationships must be set using ResourceIdentifiers/,
+  'setOne throws correctly');
+
+  assert.throws(() => {
+    this.store.setMany(a, 'author', [{ type: 'thing', id: 'whatever' }]);
+  },
+  /Relationships must be set using ResourceIdentifiers/,
+  'setMany throws correctly');
+
+  assert.throws(() => {
+    this.store.pushMany(a, 'author', { type: 'thing', id: 'whatever' });
+  },
+  /Relationships must be set using ResourceIdentifiers/,
+  'pushMany throws correctly');
+});
+
+
 test("Throws an error when using a setter of the wrong count", function(assert) {
   this.store.defineOne('thing', 'author', 'other');
   this.store.defineMany('thing', 'comments', 'other');
@@ -106,11 +128,8 @@ test("Returns a resource identifier object for set to-one relationships", functi
   this.store.setOne(a, 'author', b);
 
   let related = this.store.getRelated(a, 'author');
-  assert.deepEqual(related, new ResourceIdentifier({ type: 'other', id: 'b' }));
+  assert.deepEqual(related, new ResourceIdentifier('other', 'b'));
 });
-
-// test You can set a to-one relationship with a model
-// test You can set a to-one relationship with a resource identifier
 
 
 test("Returns resource identifiers for set to-many relationships", function(assert) {
@@ -119,14 +138,11 @@ test("Returns resource identifiers for set to-many relationships", function(asse
 
   let related = this.store.getRelated(a, 'comments');
   let expected = [
-    new ResourceIdentifier({ type: 'other', id: 'b' }),
-    new ResourceIdentifier({ type: 'other', id: 'c' })
+    new ResourceIdentifier('other', 'b'),
+    new ResourceIdentifier('other', 'c')
   ];
   assert.deepEqual(related, expected);
 });
-
-// test You can set a to-many relationship with to models
-// test You can set a to-many relationship with to resource identifiers
 
 test("You can push models into to-many relationships", function(assert) {
   this.store.defineMany('thing', 'comments', 'other');
@@ -135,8 +151,8 @@ test("You can push models into to-many relationships", function(assert) {
 
   let related = this.store.getRelated(a, 'comments');
   let expected = [
-    new ResourceIdentifier({ type: 'other', id: 'b' }),
-    new ResourceIdentifier({ type: 'other', id: 'c' })
+    new ResourceIdentifier('other', 'b'),
+    new ResourceIdentifier('other', 'c')
   ];
   assert.deepEqual(related, expected);
 });
@@ -144,12 +160,12 @@ test("You can push models into to-many relationships", function(assert) {
 test("You can push identifiers into to-many relationships", function(assert) {
   this.store.defineMany('thing', 'comments', 'other');
   this.store.setMany(a, 'comments', [b]);
-  this.store.pushMany(a, 'comments', new ResourceIdentifier({type: 'other', id: 'c'}));
+  this.store.pushMany(a, 'comments', new ResourceIdentifier('other', 'c'));
 
   let related = this.store.getRelated(a, 'comments');
   let expected = [
-    new ResourceIdentifier({ type: 'other', id: 'b' }),
-    new ResourceIdentifier({ type: 'other', id: 'c' })
+    new ResourceIdentifier('other', 'b'),
+    new ResourceIdentifier('other', 'c')
   ];
   assert.deepEqual(related, expected);
 });
@@ -161,8 +177,8 @@ test("You can push multiple items into to-many relationships", function(assert) 
 
   let related = this.store.getRelated(a, 'comments');
   let expected = [
-    new ResourceIdentifier({ type: 'other', id: 'b' }),
-    new ResourceIdentifier({ type: 'other', id: 'c' })
+    new ResourceIdentifier('other', 'b'),
+    new ResourceIdentifier('other', 'c')
   ];
   assert.deepEqual(related, expected);
 });
@@ -175,7 +191,7 @@ test("You can remove models from to-many relationships", function(assert) {
 
   let related = this.store.getRelated(a, 'comments');
   let expected = [
-    new ResourceIdentifier({ type: 'other', id: 'b' })
+    new ResourceIdentifier('other', 'b')
   ];
   assert.deepEqual(related, expected);
 });

@@ -2,8 +2,9 @@ import { module, test } from 'qunit';
 import { Model } from 'ember-cli-mirage';
 import {
   Db,
-  RelationshipStore,
   DirectModel,
+  RelationshipStore,
+  ResourceIdentifier,
   Schema,
   registerModels
 } from 'ember-cli-mirage/internal';
@@ -29,6 +30,16 @@ module("Integration | DirectModel | Attributes", {
       models: this.models
     });
   }
+});
+
+test("You can get a ResourceIdentifier from an instance", function(assert) {
+  let aaron = new DirectModel({
+    schema: this.schema,
+    type: 'person',
+    id: '1'
+  });
+  let expected = new ResourceIdentifier('person', '1');
+  assert.deepEqual(aaron.identifier, expected);
 });
 
 test("attrs is populated from the db", function(assert) {

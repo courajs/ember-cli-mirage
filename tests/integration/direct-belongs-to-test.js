@@ -40,7 +40,7 @@ module("Integration | DirectModel | BelongsTo relationships", {
 test("You can get a related record", function(assert) {
   let aaron = this.schema.people.create({name: 'Aaron'});
   let post = this.schema.posts.create({title: 'Introducing Hazy Oasis'});
-  this.store.setOne(post, 'author', aaron);
+  this.store.setOne(post.identifier, 'author', aaron.identifier);
 
   assert.equal(post.author.name, 'Aaron');
 });
@@ -51,7 +51,7 @@ test("You can relate records by assigning a model", function(assert) {
 
   post.author = aaron;
 
-  let linkage = this.store.getRelated(post, 'author');
+  let linkage = this.store.getRelated(post.identifier, 'author');
 
   assert.equal(linkage.type, 'person');
   assert.equal(linkage.id, aaron.id);
@@ -63,7 +63,7 @@ test("You can relate records by assigning an id", function(assert) {
 
   post.author = aaron.id;
 
-  let linkage = this.store.getRelated(post, 'author');
+  let linkage = this.store.getRelated(post.identifier, 'author');
 
   assert.equal(linkage.type, 'person');
   assert.equal(linkage.id, aaron.id);
@@ -98,11 +98,11 @@ test("You can delete a relationship", function(assert) {
   let post = this.schema.posts.create({title: 'Introducing Hazy Oasis'});
   post.author.create({ name: 'Aaron' });
 
-  let linkage = this.schema.relationships.getRelated(post, 'author');
-  assert.deepEqual(linkage, new ResourceIdentifier({ type: 'person', id: '1' }));
+  let linkage = this.schema.relationships.getRelated(post.identifier, 'author');
+  assert.deepEqual(linkage, new ResourceIdentifier('person', '1'));
 
   post.author = null;
 
-  linkage = this.schema.relationships.getRelated(post, 'author');
+  linkage = this.schema.relationships.getRelated(post.identifier, 'author');
   assert.equal(linkage, null);
 });

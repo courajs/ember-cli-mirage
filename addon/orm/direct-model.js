@@ -4,6 +4,10 @@ import {
   toCollectionName
 } from 'ember-cli-mirage/utils';
 
+import {
+  ResourceIdentifier
+} from 'ember-cli-mirage/internal';
+
 //
 // DirectModel
 //
@@ -34,6 +38,10 @@ export default class DirectModel {
 
   get attrs() {
     return this._collection.find(this._id);
+  }
+
+  get identifier() {
+    return new ResourceIdentifier(this.modelName, this._id);
   }
 
 
@@ -76,12 +84,12 @@ export default class DirectModel {
   _defineToOne(name, toType) {
     Object.defineProperty(this, name, {
       get() {
-        let found = this._schema.relationships.getRelated(this, name);
+        let found = this._schema.relationships.getRelated(this.identifier, name);
         if (found) {
           let {type, id} = found;
           let related = this._schema[toCollectionName(type)].find(id);
           wrapBelongsTo(related, {
-            from: this,
+            from: this.identifier,
             type: toType,
             name: name,
             schema: this._schema
@@ -89,7 +97,7 @@ export default class DirectModel {
           return related;
         } else {
           return new NullBelongsTo({
-            from: this,
+            from: this.identifier,
             type: toType,
             name: name,
             schema: this._schema
@@ -98,15 +106,12 @@ export default class DirectModel {
       },
       set(val) {
         if (isId(val)) {
-          let linkage = {
-            modelName: toType,
-            id: val
-          };
-          this._schema.relationships.setOne(this, name, linkage);
+          let linkage = new ResourceIdentifier(toType, val);
+          this._schema.relationships.setOne(this.identifier, name, linkage);
         } else if (!val) {
-          this._schema.relationships.unsetOne(this, name);
+          this._schema.relationships.unsetOne(this.identifier, name);
         } else {
-          this._schema.relationships.setOne(this, name, val);
+          this._schema.relationships.setOne(this.identifier, name, val.identifier);
         }
       }
     });
@@ -116,7 +121,7 @@ export default class DirectModel {
     Object.defineProperty(this, name, {
       get() {
         return new RelatedRecordArray({
-          from: this,
+          from: this.identifier,
           name: name,
           type: toType,
           schema: this._schema
@@ -125,15 +130,12 @@ export default class DirectModel {
       set(val) {
         let linkages = val.map(function(modelOrId) {
           if (isId(modelOrId)) {
-            return {
-              id: modelOrId,
-              modelName: toType
-            };
+            return new ResourceIdentifier(toType, modelOrId);
           } else {
-            return modelOrId;
+            return modelOrId.identifier;
           }
         });
-        return this._schema.relationships.setMany(this, name, linkages);
+        return this._schema.relationships.setMany(this.identifier, name, linkages);
       }
     });
   }
@@ -147,7 +149,7 @@ function wrapBelongsTo(related, {from, name, type, schema}) {
   related.create = function(attrs) {
     let collectionName = toCollectionName(type);
     let related = schema[collectionName].create(attrs);
-    schema.relationships.setOne(from, name, related);
+    schema.relationships.setOne(from, name, related.identifier);
     return related;
   };
 }
@@ -163,7 +165,7 @@ class NullBelongsTo {
   create(attrs) {
     let collectionName = toCollectionName(this._type);
     let related = this._schema[collectionName].create(attrs);
-    this._schema.relationships.setOne(this._from, this._name, related);
+    this._schema.relationships.setOne(this._from, this._name, related.identifier);
     return related;
   }
 }
@@ -186,6 +188,10 @@ class RelatedRecordArray extends Array {
     let linkages = this._schema.relationships.getRelated(this._from, this._name);
     return linkages.map(l => l.id);
   }
+
+  // get identifiers() {
+  //   return this._schema.relationships.getRelated(this._from, this._name);
+  // }
 
   push(...vals) {
     let linkages = this._toLinkages(vals);
@@ -215,12 +221,9 @@ class RelatedRecordArray extends Array {
   _toLinkages(idsOrModels) {
     return idsOrModels.map((val) => {
       if (isId(val)) {
-        return {
-          id: val,
-          modelName: this._type
-        };
+        return new ResourceIdentifier(this._type, val);
       } else {
-        return val;
+        return val.identifier;
       }
     });
   }

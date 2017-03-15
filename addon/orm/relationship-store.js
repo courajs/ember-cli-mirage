@@ -1,5 +1,4 @@
 import { pluralize, capitalize } from '../utils/inflector';
-import { Collection } from 'ember-cli-mirage';
 import setObjectPath from '../utils/set-object-path';
 
 export default class RelationshipStore {
@@ -39,27 +38,23 @@ export default class RelationshipStore {
   // Relationship use
   //
 
-  getRelated(model, relationshipName) {
-    this.checkHasRelationship(model, relationshipName);
+  getRelated(from, relationshipName) {
+    this.checkHasRelationship(from, relationshipName);
 
-    let type = model.modelName;
-    let id = model.id;
+    let type = from.type;
+    let id = from.id;
 
-    let defaultValue = this.getEmptyForRelationship(model, relationshipName);
-    return (this._rels[type] && this._rels[type][id] && this._rels[type][id][relationshipName]) || defaultValue;
+    let related = this._rels[type] && this._rels[type][id] && this._rels[type][id][relationshipName];
+    return related || this.getEmptyForRelationship(from, relationshipName);
   }
 
   setOne(from, relationshipName, to) {
     this.checkOne(from, relationshipName, to);
-    let linkage = this.toIdentifier(to);
-    this.setRelationship(from, relationshipName, linkage);
+    this.setRelationship(from, relationshipName, to);
   }
 
-  unsetOne(model, relationshipName) {
-    let {
-      id,
-      modelName: type
-    } = model;
+  unsetOne(from, relationshipName) {
+    let { type, id } = from;
 
     if (this._rels[type] && this._rels[type][id]) {
       delete this._rels[type][id][relationshipName];
@@ -67,67 +62,42 @@ export default class RelationshipStore {
   }
 
   setMany(from, relationshipName, to) {
-    let tos = to.map(this.toIdentifier);
-    this.checkMany(from, relationshipName, tos);
-    this.setRelationship(from, relationshipName, tos);
+    this.checkMany(from, relationshipName, to);
+    this.setRelationship(from, relationshipName, to);
   }
 
   pushMany(from, relationshipName, to) {
-    let tos;
-    if (Array.isArray(to)) {
-      tos = to;
-    } else if (to instanceof Collection) {
-      tos = to.models;
-    } else {
-      tos = [to];
-    }
-    tos = tos.map(this.toIdentifier);
+    let tos = arrayify(to);
     this.checkMany(from, relationshipName, tos);
     let existing = this.getRelated(from, relationshipName);
     this.setRelationship(from, relationshipName, existing.concat(tos));
   }
 
-  removeMany(from, relationshipName, to) {
-    let tos;
-    if (Array.isArray(to)) {
-      tos = to;
-    } else if (to instanceof Collection) {
-      tos = to.models;
-    } else {
-      tos = [to];
-    }
+  removeMany(from, relationshipName, _to) {
+    let tos = arrayify(_to);
     let existing = this.getRelated(from, relationshipName);
     let newLinkages = existing.filter(function(other) {
-      return tos.every(function(toRemove) {
-        return toRemove.modelName !== other.type || toRemove.id !== other.id;
+      return !tos.some(function(to) {
+        return to.is(other);
       });
     });
     this.setRelationship(from, relationshipName, newLinkages);
   }
 
-  toIdentifier(model) {
-    if (model instanceof ResourceIdentifier) {
-      return model;
-    } else {
-      return new ResourceIdentifier({
-        type: model.modelName,
-        id: model.id
-      });
-    }
-  }
-
   checkOne(from, relName, to) {
+    assertIdentifier(from);
+    assertIdentifier(to);
     let rel = this.getRelationship(from, relName);
 
     if (rel.count === 'many') {
-      let type = capitalize(from.modelName);
+      let type = capitalize(from.type);
       let message = `${type}.${relName} is a to-many relationship, not a to-one.`;
       throw new Error(message);
     }
 
-    if (rel.to !== to.modelName) {
-      let fromType = capitalize(from.modelName);
-      let toType = capitalize(to.modelName);
+    if (rel.to !== to.type) {
+      let fromType = capitalize(from.type);
+      let toType = capitalize(to.type);
       let properType = capitalize(rel.to);
 
       let toArticle = articleFor(toType);
@@ -141,17 +111,19 @@ export default class RelationshipStore {
   }
 
   checkMany(from, relName, to) {
+    assertIdentifier(from);
+    to.forEach(assertIdentifier);
     let rel = this.getRelationship(from, relName);
 
     if (rel.count === 'one') {
-      let type = capitalize(from.modelName);
+      let type = capitalize(from.type);
       let message = `${type}.${relName} is a to-one relationship, not a to-many.`;
       throw new Error(message);
     }
 
     for (let target of to) {
       if (target.type !== rel.to) {
-        let fromType = capitalize(from.modelName);
+        let fromType = capitalize(from.type);
         let properTypes = capitalize(pluralize(rel.to));
         let toType = capitalize(target.type);
         let toId = JSON.stringify(target.id);
@@ -167,19 +139,18 @@ export default class RelationshipStore {
   }
 
   getRelationship(from, relName) {
-    let type = from.modelName;
+    let type = from.type;
     let rel = this._definedRels[type] && this._definedRels[type][relName];
 
     if (!rel) {
-      this.throwUndefinedRelationshipError(relName, from.modelName);
+      this.throwUndefinedRelationshipError(relName, type);
     }
 
     return rel;
   }
 
-  getEmptyForRelationship(model, relName) {
-    let type = model.modelName;
-    let count = this._definedRels[type][relName].count;
+  getEmptyForRelationship(from, relName) {
+    let count = this._definedRels[from.type][relName].count;
     if (count === 'many') {
       return [];
     } else {
@@ -187,16 +158,12 @@ export default class RelationshipStore {
     }
   }
 
-  setRelationship(model, relName, value) {
-    let type = model.modelName;
-    let id = model.id;
-    setObjectPath(this._rels, type, id, relName, value);
+  setRelationship(from, relName, value) {
+    setObjectPath(this._rels, from.type, from.id, relName, value);
   }
 
-  throwUndefinedRelationshipError(relName, modelName) {
-    let modelType = pluralize(modelName);
-    let message = `Relationship "${relName}" has not been defined for ${modelType}`;
-    throw new Error(message);
+  throwUndefinedRelationshipError(relName, fromType) {
+    throw new Error(`Relationship "${relName}" has not been defined for ${pluralize(fromType)}`);
   }
 }
 
@@ -211,19 +178,26 @@ function articleFor(word) {
 }
 
 export class ResourceIdentifier {
-  constructor({type, id}) {
+  constructor(type, id) {
     this.type = type;
     this.id = id;
   }
 
-  get props() {
-    return {
-      type: this.type,
-      id: this.id
-    };
-  }
-
   is(props) {
     return this.type === props.type && this.id === props.id;
+  }
+}
+
+function assertIdentifier(x) {
+  if (!(x instanceof ResourceIdentifier)) {
+    throw new Error('Relationships must be set using ResourceIdentifiers');
+  }
+}
+
+function arrayify(x) {
+  if (Array.isArray(x)) {
+    return x;
+  } else {
+    return [x];
   }
 }
