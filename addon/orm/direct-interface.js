@@ -38,7 +38,7 @@ export default class DirectInterface {
         id: ids[0]
       });
     } else {
-      return _.flatten(ids).map((id) => {
+      return _.flatten(ids).map((id) => { // flatten supports both .find('a', 'b') and .find(['a', 'b'])
         return new DirectModel({
           schema: this._schema,
           type: this.type,
