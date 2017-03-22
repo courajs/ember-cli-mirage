@@ -16,130 +16,137 @@ import {
 // an existing record. The DirectInterface is one way to create records
 //
 
-export default class DirectModel {
-  constructor({ schema, type, attrs, id }) {
-    assert(schema, 'Pass a schema to DirectModel');
-    assert(type, 'Pass a type to DirectModel');
-    assert(attrs || present(id), 'Pass either attributes or an id to DirectModel');
+export default function directModelClassFor(type, typeClass) {
+  assert(type, 'Pass a type name!');
+  assert(typeClass, 'Pass a type class!');
+  return class DirectModel extends typeClass {
+    constructor({ schema, attrs, id }) {
+      super();
 
-    this._schema = schema;
-    this.modelName = type;
+      assert(schema, 'Pass a schema to DirectModel');
+      assert(type, 'Pass a type to DirectModel');
+      assert(attrs || present(id), 'Pass either attributes or an id to DirectModel');
 
-    if (attrs) {
-      let inserted = this._collection.insert(attrs);
-      this._id = inserted.id;
-    } else {
-      this._id = id;
+      this._schema = schema;
+      this.modelName = type;
+
+      if (attrs) {
+        let inserted = this._collection.insert(attrs);
+        this._id = inserted.id;
+      } else {
+        this._id = id;
+      }
+
+      this._setupAttrs();
+      this._setupRelationships();
     }
 
-    this._setupAttrs();
-    this._setupRelationships();
-  }
+    get attrs() {
+      return this._collection.find(this._id);
+    }
 
-  get attrs() {
-    return this._collection.find(this._id);
-  }
-
-  get identifier() {
-    return new ResourceIdentifier(this.modelName, this._id);
-  }
+    get identifier() {
+      return new ResourceIdentifier(this.modelName, this._id);
+    }
 
 
-  //
-  // Private methods
-  //
+    //
+    // Private methods
+    //
 
-  get _collection() {
-    let name = toCollectionName(this.modelName);
-    return this._schema.db[name];
-  }
+    get _collection() {
+      let name = toCollectionName(this.modelName);
+      return this._schema.db[name];
+    }
 
-  _setupAttrs() {
-    for (let attr in this.attrs) {
-      Object.defineProperty(this, attr, {
-        get() {
-          return this.attrs[attr];
-        },
-        set(val) {
-          this._collection.update(
-              { id: this._id },
-              { [attr]: val }
-          );
+    _setupAttrs() {
+      for (let attr in this.attrs) {
+        Object.defineProperty(this, attr, {
+          get() {
+            return this.attrs[attr];
+          },
+          set(val) {
+            this._collection.update(
+                { id: this._id },
+                { [attr]: val }
+            );
+          }
+        });
+      }
+    }
+
+    _setupRelationships() {
+      let rels = this._schema.relationships.relationshipsForType(this.modelName);
+      rels.forEach(({name, count, to}) => {
+        if (count === 'one') {
+          this._defineToOne(name, to);
+        } else if (count === 'many') {
+          this._defineToMany(name, to);
         }
       });
     }
-  }
 
-  _setupRelationships() {
-    let rels = this._schema.relationships.relationshipsForType(this.modelName);
-    rels.forEach(({name, count, to}) => {
-      if (count === 'one') {
-        this._defineToOne(name, to);
-      } else if (count === 'many') {
-        this._defineToMany(name, to);
-      }
-    });
-  }
-
-  _defineToOne(name, toType) {
-    Object.defineProperty(this, name, {
-      get() {
-        let found = this._schema.relationships.getRelated(this.identifier, name);
-        if (found) {
-          let {type, id} = found;
-          let related = this._schema[toCollectionName(type)].find(id);
-          wrapBelongsTo(related, {
-            from: this.identifier,
-            type: toType,
-            name: name,
-            schema: this._schema
-          });
-          return related;
-        } else {
-          return new NullBelongsTo({
-            from: this.identifier,
-            type: toType,
-            name: name,
-            schema: this._schema
-          });
-        }
-      },
-      set(val) {
-        if (isId(val)) {
-          let linkage = new ResourceIdentifier(toType, val);
-          this._schema.relationships.setOne(this.identifier, name, linkage);
-        } else if (!val) {
-          this._schema.relationships.unsetOne(this.identifier, name);
-        } else {
-          this._schema.relationships.setOne(this.identifier, name, val.identifier);
-        }
-      }
-    });
-  }
-
-  _defineToMany(name, toType) {
-    Object.defineProperty(this, name, {
-      get() {
-        return new RelatedRecordArray({
-          from: this.identifier,
-          name: name,
-          type: toType,
-          schema: this._schema
-        });
-      },
-      set(val) {
-        let linkages = val.map(function(modelOrId) {
-          if (isId(modelOrId)) {
-            return new ResourceIdentifier(toType, modelOrId);
+    _defineToOne(name, toType) {
+      Object.defineProperty(this, name, {
+        get() {
+          let found = this._schema.relationships.getRelated(this.identifier, name);
+          if (found) {
+            let {type, id} = found;
+            let related = this._schema[toCollectionName(type)].find(id);
+            wrapBelongsTo(related, {
+              from: this.identifier,
+              type: toType,
+              name: name,
+              schema: this._schema
+            });
+            return related;
           } else {
-            return modelOrId.identifier;
+            return new NullBelongsTo({
+              from: this.identifier,
+              type: toType,
+              name: name,
+              schema: this._schema
+            });
           }
-        });
-        return this._schema.relationships.setMany(this.identifier, name, linkages);
-      }
-    });
-  }
+        },
+        set(val) {
+          if (isId(val)) {
+            let linkage = new ResourceIdentifier(toType, val);
+            this._schema.relationships.setOne(this.identifier, name, linkage);
+          } else if (!val) {
+            this._schema.relationships.unsetOne(this.identifier, name);
+          } else {
+            this._schema.relationships.setOne(this.identifier, name, val.identifier);
+          }
+        }
+      });
+    }
+
+    _defineToMany(name, toType) {
+      Object.defineProperty(this, name, {
+        get() {
+          return new RelatedRecordArray({
+            from: this.identifier,
+            name: name,
+            type: toType,
+            schema: this._schema
+          });
+        },
+        set(val) {
+          let linkages = val.map(function(modelOrId) {
+            if (isId(modelOrId)) {
+              return new ResourceIdentifier(toType, modelOrId);
+            } else {
+              return modelOrId.identifier;
+            }
+          });
+          return this._schema.relationships.setMany(this.identifier, name, linkages);
+        }
+      });
+    }
+  };
 }
+
 
 function isId(x) {
   return typeof x === 'string' || typeof x === 'number';

@@ -2,12 +2,14 @@ import { module, test } from 'qunit';
 import { Model } from 'ember-cli-mirage';
 import {
   Db,
-  DirectModel,
   RelationshipStore,
   ResourceIdentifier,
   Schema,
+  directModelClassFor,
   registerModels
 } from 'ember-cli-mirage/internal';
+
+let DirectModel;
 
 module("Integration | DirectModel | Attributes", {
   beforeEach() {
@@ -17,6 +19,7 @@ module("Integration | DirectModel | Attributes", {
     this.models = {
       person: this.Person
     };
+    DirectModel = directModelClassFor('person', this.Person);
 
     registerModels({
       db: this.db,
@@ -35,7 +38,6 @@ module("Integration | DirectModel | Attributes", {
 test("You can get a ResourceIdentifier from an instance", function(assert) {
   let aaron = new DirectModel({
     schema: this.schema,
-    type: 'person',
     id: '1'
   });
   let expected = new ResourceIdentifier('person', '1');
@@ -47,7 +49,6 @@ test("attrs is populated from the db", function(assert) {
 
   let aaron = new DirectModel({
     schema: this.schema,
-    type: 'person',
     id: '1'
   });
 
@@ -59,7 +60,6 @@ test("Each attr is populated from the db", function(assert) {
 
   let aaron = new DirectModel({
     schema: this.schema,
-    type: 'person',
     id: '1'
   });
 
@@ -71,7 +71,6 @@ test("Attribute changes are reflected in the database", function(assert) {
 
   let aaron = new DirectModel({
     schema: this.schema,
-    type: 'person',
     id: '1'
   });
 

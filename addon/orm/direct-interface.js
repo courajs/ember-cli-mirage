@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { DirectModel } from 'ember-cli-mirage/internal';
+import { directModelClassFor } from 'ember-cli-mirage/internal';
 import {
   toCollectionName
 } from 'ember-cli-mirage/utils';
@@ -12,9 +12,10 @@ import {
 //
 
 export default class DirectInterface {
-  constructor({schema, type}) {
+  constructor({schema, typeName, typeDefinition}) {
     this._schema = schema;
-    this.type = type;
+    this.type = typeName;
+    this.typeClass = directModelClassFor(typeName, typeDefinition);
   }
 
   create(attrs) {
@@ -31,6 +32,7 @@ export default class DirectInterface {
   }
 
   find(...ids) {
+    let DirectModel = this.typeClass;
     if (ids.length === 1 && isId(ids[0])) {
       return new DirectModel({
         schema: this._schema,

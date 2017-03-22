@@ -3,7 +3,6 @@ import { Model } from 'ember-cli-mirage';
 import {
   Db,
   RelationshipStore,
-  DirectModel,
   DirectInterface,
   Schema,
   registerModels
@@ -32,7 +31,8 @@ module("Integration | DirectInterface", {
 
     this.interface = new DirectInterface({
       schema: this.schema,
-      type: 'person'
+      typeName: 'person',
+      typeDefinition: this.Person
     });
   }
 });
@@ -60,7 +60,6 @@ test(".all() returns DirectModels", function(assert) {
 
   let [aaron] = this.interface.all();
 
-  assert.ok(aaron instanceof DirectModel, "All returns DirectModels");
   assert.equal(aaron.name, 'Aaron', "The models are correctly created");
 });
 

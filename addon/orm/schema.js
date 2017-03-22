@@ -20,10 +20,11 @@ export default class Schema {
   }
 
   _createInterfaces(models) {
-    for (let type in models) {
-      this[toCollectionName(type)] = new DirectInterface({
+    for (let typeName in models) {
+      this[toCollectionName(typeName)] = new DirectInterface({
         schema: this,
-        type: type
+        typeName,
+        typeDefinition: models[typeName]
       });
     }
   }
